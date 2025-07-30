@@ -20,17 +20,17 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 #### 1.1 Project Setup
 - [x] Initialize Next.js 14+ project with TypeScript
 - [x] Configure Convex backend with proper environment setup
-- [ ] Install and configure Shadcn/UI components
+- [x] Install and configure Shadcn/UI components
 - [x] Set up development scripts and linting
 
 #### 1.2 Database Schema Implementation
-- [ ] Implement `conversations` table with proper indexing
-- [ ] Implement `messages` table with conversation relationships
-- [ ] Implement `questions` table with category and tag support
-- [ ] Implement `reports` table for AI-generated analysis
-- [ ] Implement `users` table with stats tracking
-- [ ] Implement `user_answered_questions` junction table with compound indexing
-- [ ] Create database validation schemas using Convex validators
+- [x] Implement `conversations` table with proper indexing
+- [x] Implement `messages` table with conversation relationships
+- [x] Implement `questions` table with category and tag support
+- [x] Implement `reports` table for AI-generated analysis
+- [x] Implement `users` table with stats tracking
+- [x] Implement `user_answered_questions` junction table with compound indexing
+- [x] Create database validation schemas using Convex validators
 
 #### 1.3 Authentication Setup
 - [x] Configure Clerk Auth integration with Convex
