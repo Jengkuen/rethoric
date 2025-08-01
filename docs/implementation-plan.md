@@ -34,9 +34,10 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 
 #### 1.3 Authentication Setup
 - [x] Configure Clerk Auth integration with Convex
-- [ ] Implement user registration and login flows
-- [ ] Set up protected routes and middleware
-- [ ] Create user profile management
+- [x] Create Clerk sign-in and sign-up pages using Clerk components
+- [x] Implement lazy user creation pattern in Convex queries/mutations
+- [x] Configure route protection using Next.js middleware
+- [x] Build user profile components with direct Convex queries
 
 #### 1.4 Basic Convex Functions
 - [x] Set up proper error handling and validation

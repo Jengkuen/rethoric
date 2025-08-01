@@ -7,11 +7,7 @@ export default defineSchema({
     clerkId: v.string(),
     email: v.string(),
     name: v.optional(v.string()),
-    streak: v.number(),
-    totalConversations: v.number(),
-    totalQuestionsAnswered: v.number(),
     createdAt: v.number(),
-    lastActiveAt: v.number(),
   }).index("by_clerk_id", ["clerkId"]),
 
   // Questions table with categorization and tagging
