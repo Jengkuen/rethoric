@@ -41,9 +41,8 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 
 #### 1.4 Basic Convex Functions
 - [x] Set up proper error handling and validation
-- [ ] Implement basic CRUD operations for all tables
-- [ ] Create utility functions for data access patterns
 - [x] Implement user session management
+- [x] Defer CRUD operations to feature-specific implementations (Phase 2+)
 
 ### Testing Strategy
 - Unit tests for database schema validation
