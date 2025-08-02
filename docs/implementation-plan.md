@@ -69,22 +69,29 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 
 ### Deliverables
 
-#### 2.1 Question Selection Engine
-- [ ] Implement `getDailyFeaturedQuestion` with rotation logic
-- [ ] Build `selectQuestionForUser` with compound index optimization
-- [ ] Create `hasUserAnsweredQuestion` efficient lookup function
-- [ ] Implement `getUserAnsweredQuestions` batch retrieval
-- [ ] Add question filtering by category and difficulty
+#### 2.1 Core Data Models & Schema Updates
+- [x] Add `isDaily` and `dailyDate` fields to questions table
+- [x] Implement compound indexes: `by_user_answered` on `[userId, questionId]`
+- [x] Add `by_daily` index on `[isDaily, dailyDate]` for daily question queries
 
-#### 2.2 Question Database Operations
-- [ ] Create question seeding system with initial question bank
+#### 2.2 Question Selection Engine
+- [x] Implement `getNextQuestionForUser(userId)` as primary query function
+- [x] Build daily question priority check with date-based filtering
+- [x] Create efficient unanswered question lookup using compound indexes
+- [x] Implement deterministic randomization using user ID + date seed
+- [x] Add completion state handling for when all questions are answered
+
+#### 2.3 Question Database Operations
+- [ ] Create question seeding system with daily question rotation
 - [ ] Implement question categorization (politics, economics, technology, society, ethics)
 - [ ] Add tagging system for granular question organization
+- [ ] Build daily question assignment and rotation logic
 
-#### 2.3 User Question History Tracking
-- [ ] Implement efficient answered question tracking
-- [ ] Build streak calculation and user statistics
-- [ ] Create basic question recommendation algorithm
+#### 2.4 Optimized Query Patterns
+- [ ] Implement O(log n) compound index lookups for user answered questions
+- [ ] Create batch retrieval for user's answered question IDs
+- [ ] Add client-side filtering for available question randomization
+- [ ] Implement caching strategy for daily questions with date-based invalidation
 
 ### Testing Strategy
 - Unit tests for question selection algorithms
@@ -93,11 +100,12 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - Load tests for question selection under high user volume
 
 ### Success Criteria
-- Question selection algorithm works efficiently (O(log n) lookups)
-- Daily question rotation functions correctly
-- User question history tracked accurately
-- No duplicate questions served to users
-- Question bank easily manageable by admins
+- Primary `getNextQuestionForUser` function returns correct question in O(log n) time
+- Daily questions take priority and rotate correctly with date-based logic
+- Compound index queries perform efficiently under load
+- Deterministic randomization ensures fair question distribution
+- All questions completion state handled gracefully
+- No duplicate questions served to users within same completion cycle
 
 ---
 

@@ -22,12 +22,13 @@ export default defineSchema({
       v.literal("ethics")
     ),
     tags: v.array(v.string()),
-    difficulty: v.union(v.literal("beginner"), v.literal("intermediate"), v.literal("advanced")),
+    isDaily: v.boolean(),
+    dailyDate: v.optional(v.string()), // ISO date string for daily questions
     isActive: v.boolean(),
     createdAt: v.number(),
   })
     .index("by_category", ["category"])
-    .index("by_difficulty", ["difficulty"])
+    .index("by_daily", ["isDaily", "dailyDate"])
     .index("by_active", ["isActive"]),
 
   // Conversations table with proper indexing
@@ -78,6 +79,6 @@ export default defineSchema({
     answeredAt: v.number(),
   })
     .index("by_user", ["userId"])
-    .index("by_user_question", ["userId", "questionId"])
+    .index("by_user_answered", ["userId", "questionId"])
     .index("by_question", ["questionId"]),
 });
