@@ -14,22 +14,12 @@ export default defineSchema({
   questions: defineTable({
     title: v.string(),
     description: v.string(),
-    category: v.union(
-      v.literal("politics"), 
-      v.literal("economics"), 
-      v.literal("technology"), 
-      v.literal("society"), 
-      v.literal("ethics")
-    ),
     tags: v.array(v.string()),
     isDaily: v.boolean(),
     dailyDate: v.optional(v.string()), // ISO date string for daily questions
-    isActive: v.boolean(),
     createdAt: v.number(),
   })
-    .index("by_category", ["category"])
-    .index("by_daily", ["isDaily", "dailyDate"])
-    .index("by_active", ["isActive"]),
+    .index("by_daily", ["isDaily", "dailyDate"]),
 
   // Conversations table with proper indexing
   conversations: defineTable({

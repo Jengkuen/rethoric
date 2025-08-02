@@ -1,4 +1,4 @@
-import { query } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
 export const getNextQuestionForUser = query({
@@ -10,7 +10,6 @@ export const getNextQuestionForUser = query({
     const dailyQuestion = await ctx.db
       .query("questions")
       .withIndex("by_daily", (q) => q.eq("isDaily", true).eq("dailyDate", today))
-      .filter((q) => q.eq(q.field("isActive"), true))
       .first();
 
     if (dailyQuestion) {
@@ -39,10 +38,9 @@ export const getNextQuestionForUser = query({
 
     const answeredQuestionIds = new Set(answeredQuestions.map(aq => aq.questionId));
 
-    // 3. Get all active questions
+    // 3. Get all questions
     const allQuestions = await ctx.db
       .query("questions")
-      .withIndex("by_active", (q) => q.eq("isActive", true))
       .collect();
 
     // 4. Filter to unanswered questions
@@ -71,5 +69,57 @@ export const getNextQuestionForUser = query({
       question: selectedQuestion,
       message: "Here's a question for you to explore"
     };
+  },
+});
+
+// CRUD Operations for Admin Dashboard
+export const createQuestion = mutation({
+  args: {
+    title: v.string(),
+    description: v.string(),
+    tags: v.array(v.string()),
+    isDaily: v.boolean(),
+    dailyDate: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("questions", {
+      ...args,
+      createdAt: Date.now(),
+    });
+  },
+});
+
+export const getQuestion = query({
+  args: { questionId: v.id("questions") },
+  handler: async (ctx, { questionId }) => {
+    return await ctx.db.get(questionId);
+  },
+});
+
+export const updateQuestion = mutation({
+  args: {
+    questionId: v.id("questions"),
+    title: v.optional(v.string()),
+    description: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+    isDaily: v.optional(v.boolean()),
+    dailyDate: v.optional(v.string()),
+  },
+  handler: async (ctx, { questionId, ...updates }) => {
+    return await ctx.db.patch(questionId, updates);
+  },
+});
+
+export const deleteQuestion = mutation({
+  args: { questionId: v.id("questions") },
+  handler: async (ctx, { questionId }) => {
+    return await ctx.db.delete(questionId);
+  },
+});
+
+export const listAllQuestions = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("questions").collect();
   },
 });

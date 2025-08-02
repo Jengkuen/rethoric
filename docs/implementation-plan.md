@@ -82,10 +82,11 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [x] Add completion state handling for when all questions are answered
 
 #### 2.3 Question Database Operations
-- [ ] Create question seeding system with daily question rotation
-- [ ] Implement question categorization (politics, economics, technology, society, ethics)
-- [ ] Add tagging system for granular question organization
-- [ ] Build daily question assignment and rotation logic
+- [x] Create basic CRUD functions: createQuestion, getQuestion, updateQuestion, deleteQuestion
+- [x] Implement listAllQuestions query for admin dashboard
+- [x] Build single-page admin dashboard at /app/admin/questions
+- [x] Create modal-based question management (CreateQuestionModal, EditQuestionModal, DeleteConfirmModal)
+- [x] Implement QuestionTable component with edit/delete actions
 
 #### 2.4 Optimized Query Patterns
 - [ ] Implement O(log n) compound index lookups for user answered questions
