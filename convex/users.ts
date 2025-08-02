@@ -41,11 +41,12 @@ export const createUserFromWebhook = internalMutation({
       return existing._id;
     }
 
-    // Create new user
+    // Create new user with default 'user' role
     const userId = await ctx.db.insert("users", {
       clerkId: args.clerkId,
       email: args.email,
       name: args.name,
+      role: "user", // Default role for new users
       createdAt: Date.now(),
     });
 
@@ -78,6 +79,22 @@ export const updateProfile = mutation({
     });
 
     return { success: true };
+  },
+});
+
+// Check if current user is admin
+export const isCurrentUserAdmin = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return false;
+    
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+    
+    return user?.role === "admin";
   },
 });
 

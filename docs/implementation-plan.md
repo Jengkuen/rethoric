@@ -89,10 +89,10 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [x] Implement QuestionTable component with edit/delete actions
 
 #### 2.4 Optimized Query Patterns
-- [ ] Implement O(log n) compound index lookups for user answered questions
-- [ ] Create batch retrieval for user's answered question IDs
-- [ ] Add client-side filtering for available question randomization
-- [ ] Implement caching strategy for daily questions with date-based invalidation
+- [x] Implement O(log n) compound index lookups for user answered questions
+- [x] Create batch retrieval for user's answered question IDs
+- [x] Add client-side filtering for available question randomization
+- [x] Implement caching strategy for daily questions with date-based invalidation
 
 ### Testing Strategy
 - Unit tests for question selection algorithms

@@ -9,7 +9,21 @@ import { CreateQuestionModal } from "./components/CreateQuestionModal";
 
 export default function AdminQuestionsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const isAdmin = useQuery(api.users.isCurrentUserAdmin);
   const questions = useQuery(api.questions.listAllQuestions);
+
+  if (isAdmin === undefined) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="container mx-auto p-6 text-center">
+        <h1 className="text-2xl font-bold text-red-600">Access Denied</h1>
+        <p className="mt-2 text-gray-600">You don't have permission to access this page.</p>
+      </div>
+    );
+  }
 
   if (questions === undefined) {
     return <div>Loading questions...</div>;

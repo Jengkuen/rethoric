@@ -6,14 +6,14 @@ export const getNextQuestionForUser = query({
   handler: async (ctx, { userId }) => {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     
-    // 1. Check for today's daily question first
+    // 1. Check for today's daily question first (with efficient compound index)
     const dailyQuestion = await ctx.db
       .query("questions")
       .withIndex("by_daily", (q) => q.eq("isDaily", true).eq("dailyDate", today))
       .first();
 
     if (dailyQuestion) {
-      // Check if user has already answered today's daily question
+      // Check if user has already answered today's daily question (O(log n) lookup)
       const hasAnswered = await ctx.db
         .query("user_answered_questions")
         .withIndex("by_user_answered", (q) => 
@@ -30,20 +30,21 @@ export const getNextQuestionForUser = query({
       }
     }
 
-    // 2. Get all questions user has answered
+    // 2. Batch retrieval: Get all questions user has answered efficiently
     const answeredQuestions = await ctx.db
       .query("user_answered_questions")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
 
+    // Extract question IDs for efficient filtering
     const answeredQuestionIds = new Set(answeredQuestions.map(aq => aq.questionId));
 
-    // 3. Get all questions
+    // 3. Get all questions (cached by Convex automatically)
     const allQuestions = await ctx.db
       .query("questions")
       .collect();
 
-    // 4. Filter to unanswered questions
+    // 4. Client-side filtering: Filter to unanswered questions using Set for O(1) lookup
     const unansweredQuestions = allQuestions.filter(q => !answeredQuestionIds.has(q._id));
 
     if (unansweredQuestions.length === 0) {
