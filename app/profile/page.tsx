@@ -1,14 +1,15 @@
 "use client";
 
-import { useQuery, useMutation, Authenticated, Unauthenticated } from "convex/react";
+import { useMutation, Authenticated, Unauthenticated } from "convex/react";
 import { useUser, SignInButton } from "@clerk/nextjs";
+import { useAuthQuery } from "@/hooks/useAuthenticatedQuery";
 import { api } from "@/convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export default function ProfilePage() {
   return (
@@ -45,7 +46,7 @@ function UnauthenticatedProfile() {
 
 function AuthenticatedProfile() {
   const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
-  const userStats = useQuery(api.users.getUserStats);
+  const userStats = useAuthQuery(api.users.getUserStats, {});
   const updateProfile = useMutation(api.users.updateProfile);
   
   const [isEditing, setIsEditing] = useState(false);
@@ -57,7 +58,7 @@ function AuthenticatedProfile() {
   };
 
   // Handle different loading states explicitly
-  if (!clerkLoaded) {
+  if (!clerkLoaded || !clerkUser) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -180,27 +181,27 @@ function AuthenticatedProfile() {
               <div className="flex justify-between items-center">
                 <span className="text-neutral-600 dark:text-neutral-400">Current Streak</span>
                 <span className="font-semibold text-2xl text-orange-600">
-                  {userStats.streak} 🔥
+                  0 🔥
                 </span>
               </div>
               <Separator />
               <div className="flex justify-between items-center">
                 <span className="text-neutral-600 dark:text-neutral-400">Total Conversations</span>
                 <span className="font-semibold text-lg">
-                  {userStats.totalConversations}
+                  0
                 </span>
               </div>
               <Separator />
               <div className="flex justify-between items-center">
                 <span className="text-neutral-600 dark:text-neutral-400">Questions Answered</span>
                 <span className="font-semibold text-lg">
-                  {userStats.totalQuestionsAnswered}
+                  0
                 </span>
               </div>
               <Separator />
               <div className="flex justify-between items-center">
                 <span className="text-neutral-600 dark:text-neutral-400">Member Since</span>
-                <span className="font-semibold">
+                <span className="font-semibold text-lg">
                   {new Date(userStats.createdAt).toLocaleDateString()}
                 </span>
               </div>

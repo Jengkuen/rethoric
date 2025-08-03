@@ -95,9 +95,15 @@ export const getConversationMessages = authQuery({
       .order("asc")
       .collect();
 
+    // Get the question details
+    const question = await ctx.db.get(conversation.questionId);
+
     return {
       messages,
-      conversation,
+      conversation: {
+        ...conversation,
+        question,
+      },
     };
   },
 });

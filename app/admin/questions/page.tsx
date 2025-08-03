@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "convex/react";
+import { useAuthQuery } from "@/hooks/useAuthenticatedQuery";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { QuestionTable } from "./components/QuestionTable";
@@ -9,8 +9,8 @@ import { CreateQuestionModal } from "./components/CreateQuestionModal";
 
 export default function AdminQuestionsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const isAdmin = useQuery(api.users.isCurrentUserAdmin);
-  const questions = useQuery(api.questions.listAllQuestions);
+  const isAdmin = useAuthQuery(api.users.isCurrentUserAdmin, {});
+  const questions = useAuthQuery(api.questions.listAllQuestions, {});
 
   if (isAdmin === undefined) {
     return <div>Loading...</div>;
@@ -20,7 +20,7 @@ export default function AdminQuestionsPage() {
     return (
       <div className="container mx-auto p-6 text-center">
         <h1 className="text-2xl font-bold text-red-600">Access Denied</h1>
-        <p className="mt-2 text-gray-600">You don't have permission to access this page.</p>
+        <p className="mt-2 text-gray-600">You don&apos;t have permission to access this page.</p>
       </div>
     );
   }

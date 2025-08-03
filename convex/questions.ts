@@ -1,9 +1,12 @@
-import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { authQuery, authMutation, getCurrentUser } from "./lib/auth";
 
-export const getNextQuestionForUser = query({
-  args: { userId: v.id("users") },
-  handler: async (ctx, { userId }) => {
+export const getNextQuestionForUser = authQuery({
+  args: {},
+  handler: async (ctx) => {
+    // Auth is guaranteed, get current user
+    const user = await getCurrentUser(ctx);
+    const userId = user._id;
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     
     // 1. Check for today's daily question first (with efficient compound index)
@@ -74,7 +77,7 @@ export const getNextQuestionForUser = query({
 });
 
 // CRUD Operations for Admin Dashboard
-export const createQuestion = mutation({
+export const createQuestion = authMutation({
   args: {
     title: v.string(),
     description: v.string(),
@@ -83,6 +86,7 @@ export const createQuestion = mutation({
     dailyDate: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    // Auth is guaranteed - in a full implementation, you might want to check for admin role here
     return await ctx.db.insert("questions", {
       ...args,
       createdAt: Date.now(),
@@ -90,14 +94,15 @@ export const createQuestion = mutation({
   },
 });
 
-export const getQuestion = query({
+export const getQuestion = authQuery({
   args: { questionId: v.id("questions") },
   handler: async (ctx, { questionId }) => {
+    // Auth is guaranteed
     return await ctx.db.get(questionId);
   },
 });
 
-export const updateQuestion = mutation({
+export const updateQuestion = authMutation({
   args: {
     questionId: v.id("questions"),
     title: v.optional(v.string()),
@@ -107,20 +112,23 @@ export const updateQuestion = mutation({
     dailyDate: v.optional(v.string()),
   },
   handler: async (ctx, { questionId, ...updates }) => {
+    // Auth is guaranteed - in a full implementation, you might want to check for admin role here
     return await ctx.db.patch(questionId, updates);
   },
 });
 
-export const deleteQuestion = mutation({
+export const deleteQuestion = authMutation({
   args: { questionId: v.id("questions") },
   handler: async (ctx, { questionId }) => {
+    // Auth is guaranteed - in a full implementation, you might want to check for admin role here
     return await ctx.db.delete(questionId);
   },
 });
 
-export const listAllQuestions = query({
+export const listAllQuestions = authQuery({
   args: {},
   handler: async (ctx) => {
+    // Auth is guaranteed - in a full implementation, you might want to check for admin role here
     return await ctx.db.query("questions").collect();
   },
 });

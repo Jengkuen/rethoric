@@ -1,22 +1,14 @@
 import { v } from "convex/values";
-import { query, mutation, internalMutation } from "./_generated/server";
+import { internalMutation } from "./_generated/server";
+import { authQuery, authMutation, getCurrentUser as getCurrentUserHelper } from "./lib/auth";
 
 
 // Get current user stats
-export const getUserStats = query({
+export const getUserStats = authQuery({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", q => q.eq("clerkId", identity.subject))
-      .first();
-
-    // If user doesn't exist, return null - they need to trigger a mutation first
+    // Auth is guaranteed, get current user
+    const user = await getCurrentUserHelper(ctx);
     return user;
   },
 });
@@ -55,24 +47,13 @@ export const createUserFromWebhook = internalMutation({
 });
 
 // Update user profile
-export const updateProfile = mutation({
+export const updateProfile = authMutation({
   args: {
     name: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", q => q.eq("clerkId", identity.subject))
-      .first();
-
-    if (!user) {
-      throw new Error("User not found");
-    }
+    // Auth is guaranteed, get current user
+    const user = await getCurrentUserHelper(ctx);
     
     await ctx.db.patch(user._id, {
       name: args.name,
@@ -82,19 +63,22 @@ export const updateProfile = mutation({
   },
 });
 
-// Check if current user is admin
-export const isCurrentUserAdmin = query({
+// Get current authenticated user (note: this exports a query, the helper function is in auth.ts)
+export const getCurrentUser = authQuery({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return false;
-    
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .first();
-    
-    return user?.role === "admin";
+    // Auth is guaranteed, get current user using the helper
+    return await getCurrentUserHelper(ctx);
+  },
+});
+
+// Check if current user is admin
+export const isCurrentUserAdmin = authQuery({
+  args: {},
+  handler: async (ctx) => {
+    // Auth is guaranteed, get current user
+    const user = await getCurrentUserHelper(ctx);
+    return user.role === "admin";
   },
 });
 

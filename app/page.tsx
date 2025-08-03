@@ -3,13 +3,13 @@
 import {
   Authenticated,
   Unauthenticated,
-  useQuery,
 } from "convex/react";
 import Link from "next/link";
 import { SignUpButton } from "@clerk/nextjs";
 import { SignInButton } from "@clerk/nextjs";
 import { UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
+import { useAuthQuery } from "@/hooks/useAuthenticatedQuery";
 import { api } from "@/convex/_generated/api";
 
 export default function Home() {
@@ -95,7 +95,7 @@ function LandingPage() {
 }
 
 function AuthenticatedHome() {
-  const userStats = useQuery(api.users.getUserStats);
+  const userStats = useAuthQuery(api.users.getUserStats, {});
 
   // Still loading user data from Convex
   if (userStats === undefined) {

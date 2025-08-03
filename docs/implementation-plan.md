@@ -139,18 +139,20 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [x] Eliminate authentication boilerplate code across all functions
 
 #### 3.3 Core Chat Components with Convex Integration
-- [ ] Build `Sidebar` component using authenticated queries for real-time conversation list
-- [ ] Create `MainContent` component with Convex subscription management and auth guards
-- [ ] Implement `MessageBubble` with role-based styling and loading states
-- [ ] Build `MessageInput` with Convex mutation integration and optimistic updates
-- [ ] Create `ConversationList` using authenticated query patterns
+- [x] Build `Sidebar` component using authenticated queries for real-time conversation list
+- [x] Create `MainContent` component with Convex subscription management and auth guards
+- [x] Implement `MessageBubble` with role-based styling and loading states
+- [x] Build `MessageInput` with Convex mutation integration and optimistic updates
+- [x] Create `ConversationList` using authenticated query patterns
+- [x] Create `ChatInterface` main orchestrator component
+- [x] Build `NewConversationModal` for question selection and conversation creation
 
 #### 3.4 Convex Reactivity Implementation
-- [ ] Leverage Convex's automatic real-time updates for message display
-- [ ] Implement proper authenticated `useQuery` patterns with skip logic
+- [x] Leverage Convex's automatic real-time updates for message display
+- [x] Implement proper authenticated `useQuery` patterns with skip logic
 - [ ] Use Convex's built-in optimistic updates for message sending
-- [ ] Add proper loading and error states using Convex hooks with auth guards
-- [ ] Implement efficient re-rendering with Convex subscriptions and auth state
+- [x] Add proper loading and error states using Convex hooks with auth guards
+- [x] Implement efficient re-rendering with Convex subscriptions and auth state
 
 #### 3.5 Agent SDK Foundation Setup
 - [ ] Install and configure `@convex-dev/agents` package
