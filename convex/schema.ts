@@ -29,7 +29,6 @@ export default defineSchema({
     userId: v.id("users"),
     questionId: v.id("questions"),
     status: v.union(v.literal("active"), v.literal("completed")),
-    messageCount: v.number(),
     startedAt: v.number(),
     completedAt: v.optional(v.number()),
   })

@@ -110,98 +110,153 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 
 ---
 
-## Phase 3: Chat Interface & Real-time Messaging
+## Phase 3: Chat Interface & Convex-Powered Messaging
 **Duration: 2 sprints | Dependencies: Phase 1, 2**
 
 ### Objectives
-- Build responsive chat interface matching design specifications
-- Implement real-time messaging system
-- Create conversation management logic
-- Establish message persistence and retrieval
+- Build responsive chat interface leveraging Convex reactivity
+- Implement real-time messaging using Convex subscriptions
+- Create conversation management with Convex queries/mutations
+- Prepare foundation for AI Agent integration
 
 ### Deliverables
 
-#### 3.1 Core Chat Components
-- [ ] Build `Sidebar` component with conversation list
-- [ ] Create `MainContent` component with toggle views
-- [ ] Implement `MessageBubble` with role-based styling
-- [ ] Build `MessageInput` with send functionality
-- [ ] Create `ConversationList` with grouping and pagination
+#### 3.1 Convex Backend Functions
+- [x] Implement `startNewConversation` mutation with question selection integration
+- [x] Create `addMessage` mutation with proper validation and indexing
+- [x] Build `getConversationMessages` query (simplified, no pagination needed)
+- [x] Implement `getUserConversations` query with proper filtering
+- [x] Create `updateConversationStatus` mutation for state management
+- [x] Remove unnecessary messageCount tracking from schema and functions
 
-#### 3.2 Real-time Messaging System
-- [ ] Implement `addMessage` mutation with real-time updates
-- [ ] Add message persistence and error handling
-- [ ] Implement optimistic updates for smooth UX
+#### 3.2 Authentication System Implementation
+- [x] Install convex-helpers package for custom authentication functions
+- [x] Create backend authenticated function helpers (authQuery, authMutation, authAction)
+- [x] Implement AuthenticationRequired utility with proper error handling
+- [x] Create validateConversationOwnership helper for access control
+- [x] Refactor all conversation functions to use new authentication patterns
+- [x] Create client-side authenticated query hooks (useAuthQuery) with race condition prevention
+- [x] Eliminate authentication boilerplate code across all functions
 
-#### 3.3 Conversation Management
-- [ ] Build `startNewConversation` with question selection integration
-- [ ] Implement conversation state management (active/completed)
-- [ ] Create conversation history with cursor-based pagination
+#### 3.3 Core Chat Components with Convex Integration
+- [ ] Build `Sidebar` component using authenticated queries for real-time conversation list
+- [ ] Create `MainContent` component with Convex subscription management and auth guards
+- [ ] Implement `MessageBubble` with role-based styling and loading states
+- [ ] Build `MessageInput` with Convex mutation integration and optimistic updates
+- [ ] Create `ConversationList` using authenticated query patterns
 
-#### 3.4 UI/UX Implementation
+#### 3.4 Convex Reactivity Implementation
+- [ ] Leverage Convex's automatic real-time updates for message display
+- [ ] Implement proper authenticated `useQuery` patterns with skip logic
+- [ ] Use Convex's built-in optimistic updates for message sending
+- [ ] Add proper loading and error states using Convex hooks with auth guards
+- [ ] Implement efficient re-rendering with Convex subscriptions and auth state
+
+#### 3.5 Agent SDK Foundation Setup
+- [ ] Install and configure `@convex-dev/agents` package
+- [ ] Set up basic agent configuration in `convex.config.ts`
+- [ ] Create placeholder action for AI response generation
+- [ ] Implement conversation context building for agent calls
+- [ ] Add proper error handling for future agent integrations
+
+#### 3.6 UI/UX Implementation
 - [ ] Implement dark theme with specified color scheme
 - [ ] Create responsive layout for mobile and desktop
-- [ ] Add smooth scrolling and auto-scroll to bottom
-- [ ] Implement loading states and error boundaries
+- [ ] Add smooth scrolling with auto-scroll to bottom on new messages
+- [ ] Implement Convex loading states and error boundaries
+- [ ] Add message retry functionality using Convex mutations
 
 ### Testing Strategy
-- Real-time messaging end-to-end tests
-- UI component unit tests with different message scenarios
-- Performance tests for message rendering with large conversations
+- Convex function unit tests with proper mock data and authentication
+- Authentication race condition testing with skip logic
+- Real-time subscription testing across multiple clients
+- UI component integration tests with authenticated Convex hooks
+- Performance tests for Convex query efficiency with auth overhead
+- Error handling tests for network failures, auth failures, and retries
 - Cross-browser compatibility testing
-- Mobile responsiveness testing
 
 ### Success Criteria
-- Messages appear in real-time across clients
-- Chat interface matches design specifications exactly
-- Smooth scrolling and responsive behavior
-- Conversation history loads efficiently with pagination
-- No message loss or duplication issues
+- All Convex functions use consistent authentication patterns
+- Client-side queries properly handle authentication race conditions
+- Messages appear instantly using Convex reactivity with auth guards
+- Chat interface leverages Convex's automatic optimistic updates
+- Conversation list updates in real-time across all authenticated clients
+- Proper error handling for auth failures and retry mechanisms
+- Agent SDK foundation ready for Phase 4 integration
+- Authentication helper functions reduce code duplication across the app
 
 ---
 
-## Phase 4: AI Integration & Response Generation
+## Phase 4: AI Agent Integration with Convex Agent SDK
 **Duration: 2 sprints | Dependencies: Phase 3**
 
 ### Objectives
-- Integrate Gemini 2.5 Flash API using Convex Agents
-- Implement AI reasoning coach persona
-- Build conversation context management
-- Create robust error handling for AI responses
+- Implement Convex Agent SDK with Gemini 2.5 Flash
+- Create AI reasoning coach using Agent patterns
+- Build sophisticated conversation flow management
+- Leverage Convex's agent tools and context management
 
 ### Deliverables
 
-#### 4.1 AI API Integration
-- [ ] Configure Gemini 2.5 Flash API integration
-- [ ] Implement `generateAIResponse` action with proper error handling
-- [ ] Set up API key management
-- [ ] Create AI response validation and sanitization
+#### 4.1 Convex Agent SDK Configuration
+- [ ] Configure Gemini 2.5 Flash provider in `convex.config.ts`
+- [ ] Set up agent API key management using Convex environment variables
+- [ ] Create base agent configuration with proper model settings
+- [ ] Implement agent tool registration and validation
+- [ ] Add proper agent error handling and fallback strategies
 
-#### 4.2 Prompt Engineering & Context Management
-- [ ] Design Socratic mentor prompt templates
-- [ ] Implement conversation context building for AI calls
-- [ ] Create category-specific questioning strategies
-- [ ] Build response tone and personality consistency
-- [ ] Add conversation flow management logic
+#### 4.2 AI Agent Implementation
+- [ ] Create `reasoningCoachAgent` using Convex Agent SDK patterns
+- [ ] Implement agent system prompts for Socratic mentoring
+- [ ] Build agent tools for conversation analysis and guidance
+- [ ] Add agent memory management for conversation context
+- [ ] Create agent response streaming for real-time user experience
 
-#### 4.3 AI Response Processing
-- [ ] Add response validation and content filtering
-- [ ] Create response enhancement (formatting, links)
-- [ ] Add conversation completion detection
+#### 4.3 Conversation Flow with Agent Integration
+- [ ] Implement `generateAIResponse` action using agent.run()
+- [ ] Build conversation context passing to agent calls
+- [ ] Create agent-powered conversation completion detection
+- [ ] Add agent tools for follow-up question generation
+- [ ] Implement conversation flow state management with agents
+
+#### 4.4 Advanced Agent Features
+- [ ] Create category-specific agent personas and tools
+- [ ] Implement agent-powered conversation analysis
+- [ ] Build agent tools for progress tracking and insights
+- [ ] Add agent capability for conversation quality assessment
+- [ ] Create agent-driven adaptive questioning strategies
+
+#### 4.5 Convex Integration Patterns
+- [ ] Use Convex actions for agent execution with proper error boundaries
+- [ ] Implement agent response caching using Convex storage
+- [ ] Add agent conversation history integration with Convex queries
+- [ ] Create agent tool access to Convex database functions
+- [ ] Build agent monitoring and logging using Convex patterns
+
+#### 4.6 Real-time Agent Response Handling
+- [ ] Implement streaming agent responses in chat interface
+- [ ] Add real-time agent thinking indicators
+- [ ] Create progressive response rendering for long agent outputs
+- [ ] Build agent response interruption and retry mechanisms
+- [ ] Add agent response quality validation and filtering
 
 ### Testing Strategy
-- AI response quality testing with sample conversations
-- Performance testing for AI API calls and timeouts
-- Error handling tests for API failures
-- Content safety testing for inappropriate responses
-- Load testing for concurrent AI requests
+- Agent SDK integration tests with mock providers
+- Agent tool functionality and conversation flow testing
+- Agent response quality and consistency validation
+- Performance testing for agent execution times
+- Agent error handling and recovery testing
+- Load testing for concurrent agent conversations
+- Agent memory and context management testing
 
 ### Success Criteria
-- AI responses consistently match Socratic mentor persona
-- Response times under 3 seconds for 95% of requests
-- Robust error handling with graceful degradation
-- Context maintained throughout long conversations
-- No inappropriate or harmful AI responses
+- Agent responses consistently embody Socratic mentor persona
+- Agent execution times under 3 seconds for 95% of interactions
+- Agent context maintained throughout complex conversations
+- Agent tools properly integrated with Convex database operations
+- Agent error handling provides graceful degradation
+- Agent streaming responses provide smooth user experience
+- Agent conversation analysis provides meaningful insights
 
 ---
 

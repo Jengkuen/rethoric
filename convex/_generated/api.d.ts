@@ -13,7 +13,9 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as conversations from "../conversations.js";
 import type * as http from "../http.js";
+import type * as lib_auth from "../lib/auth.js";
 import type * as questions from "../questions.js";
 import type * as users from "../users.js";
 
@@ -26,7 +28,9 @@ import type * as users from "../users.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  conversations: typeof conversations;
   http: typeof http;
+  "lib/auth": typeof lib_auth;
   questions: typeof questions;
   users: typeof users;
 }>;
