@@ -201,11 +201,11 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 ### Deliverables
 
 #### 4.1 Convex Agent SDK Configuration
-- [ ] Configure Gemini 2.5 Flash provider in `convex.config.ts`
-- [ ] Set up agent API key management using Convex environment variables
-- [ ] Create base agent configuration with proper model settings
-- [ ] Implement agent tool registration and validation
-- [ ] Add proper agent error handling and fallback strategies
+- [x] Configure Gemini 2.5 Flash provider in `convex.config.ts`
+- [x] Set up agent API key management using Convex environment variables
+- [x] Create base agent configuration with proper model settings
+- [x] Implement agent tool registration and validation
+- [x] Add proper agent error handling and fallback strategies
 
 #### 4.2 AI Agent Implementation
 - [ ] Create `reasoningCoachAgent` using Convex Agent SDK patterns
