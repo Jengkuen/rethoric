@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useAuthQuery } from "@/hooks/useAuthenticatedQuery";
 import { api } from "@/convex/_generated/api";
 import { MessageBubble } from "./MessageBubble";
@@ -19,20 +19,66 @@ interface MainContentProps {
   onBackToSidebar?: () => void;
 }
 
+// Temporary type for optimistic messages
+interface OptimisticMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: number;
+  isOptimistic: true;
+  isPending?: boolean;
+  hasError?: boolean;
+}
+
 export function MainContent({ conversationId, onEndConversation, onBackToSidebar }: MainContentProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [optimisticMessages, setOptimisticMessages] = useState<OptimisticMessage[]>([]);
   
   const conversationData = useAuthQuery(
     api.conversations.getConversationMessages,
     conversationId ? { conversationId } : "skip"
   );
 
+  // Clear optimistic messages when conversation changes
+  useEffect(() => {
+    setOptimisticMessages([]);
+  }, [conversationId]);
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (conversationData?.messages) {
+    if (conversationData?.messages || optimisticMessages.length > 0) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [conversationData?.messages]);
+  }, [conversationData?.messages, optimisticMessages]);
+
+  // Optimistic message management functions
+  const addOptimisticMessage = useCallback((content: string) => {
+    const optimisticMessage: OptimisticMessage = {
+      id: `optimistic-${Date.now()}-${Math.random()}`,
+      role: "user",
+      content,
+      timestamp: Date.now(),
+      isOptimistic: true,
+      isPending: true,
+    };
+    
+    setOptimisticMessages(prev => [...prev, optimisticMessage]);
+    return optimisticMessage.id;
+  }, []);
+
+  const removeOptimisticMessage = useCallback((id: string) => {
+    setOptimisticMessages(prev => prev.filter(msg => msg.id !== id));
+  }, []);
+
+  const markOptimisticMessageAsError = useCallback((id: string) => {
+    setOptimisticMessages(prev => 
+      prev.map(msg => 
+        msg.id === id 
+          ? { ...msg, isPending: false, hasError: true }
+          : msg
+      )
+    );
+  }, []);
 
   if (!conversationId) {
     return (
@@ -56,6 +102,12 @@ export function MainContent({ conversationId, onEndConversation, onBackToSidebar
 
   const { messages, conversation } = conversationData;
   const isCompleted = conversation.status === "completed";
+
+  // Combine real messages with optimistic messages
+  const allMessages = [
+    ...messages.map(msg => ({ ...msg, isOptimistic: false as const })),
+    ...optimisticMessages
+  ].sort((a, b) => a.timestamp - b.timestamp);
 
   return (
     <div className="flex-1 flex flex-col bg-neutral-50 dark:bg-neutral-950">
@@ -120,7 +172,7 @@ export function MainContent({ conversationId, onEndConversation, onBackToSidebar
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-1 scroll-smooth">
-        {messages.length === 0 && (
+        {allMessages.length === 0 && (
           <div className="text-center py-8">
             <MessageSquare className="h-8 w-8 mx-auto mb-2 text-neutral-400 dark:text-neutral-600" />
             <p className="text-neutral-600 dark:text-neutral-400 text-sm">
@@ -129,12 +181,15 @@ export function MainContent({ conversationId, onEndConversation, onBackToSidebar
           </div>
         )}
 
-        {messages.map((message) => (
+        {allMessages.map((message) => (
           <MessageBubble
-            key={message._id}
+            key={message.isOptimistic ? message.id : message._id}
             role={message.role}
             content={message.content}
             timestamp={message.timestamp}
+            isOptimistic={message.isOptimistic}
+            isPending={message.isOptimistic ? message.isPending : false}
+            hasError={message.isOptimistic ? message.hasError : false}
           />
         ))}
 
@@ -173,6 +228,9 @@ export function MainContent({ conversationId, onEndConversation, onBackToSidebar
               messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
             }, 100);
           }}
+          addOptimisticMessage={addOptimisticMessage}
+          removeOptimisticMessage={removeOptimisticMessage}
+          markOptimisticMessageAsError={markOptimisticMessageAsError}
         />
       )}
     </div>

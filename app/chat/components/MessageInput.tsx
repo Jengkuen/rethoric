@@ -13,12 +13,19 @@ interface MessageInputProps {
   conversationId: Id<"conversations">;
   disabled?: boolean;
   onMessageSent?: () => void;
+  // Optimistic update functions from parent
+  addOptimisticMessage?: (content: string) => string;
+  removeOptimisticMessage?: (id: string) => void;
+  markOptimisticMessageAsError?: (id: string) => void;
 }
 
 export function MessageInput({ 
   conversationId, 
   disabled = false, 
-  onMessageSent 
+  onMessageSent,
+  addOptimisticMessage,
+  removeOptimisticMessage,
+  markOptimisticMessageAsError
 }: MessageInputProps) {
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -38,12 +45,20 @@ export function MessageInput({
     setError(null);
     setLastFailedMessage(null);
     
+    // Add optimistic message immediately if function is available
+    const optimisticMessageId = addOptimisticMessage?.(messageContent);
+    
     try {
       await addMessage({
         conversationId,
         role: "user",
         content: messageContent,
       });
+      
+      // Remove optimistic message on success (real message will replace it)
+      if (optimisticMessageId && removeOptimisticMessage) {
+        removeOptimisticMessage(optimisticMessageId);
+      }
       
       onMessageSent?.();
     } catch (err) {
@@ -53,9 +68,15 @@ export function MessageInput({
         ? err.message 
         : "Failed to send message. Please try again.";
       
-      setError(errorMessage);
-      setLastFailedMessage(messageContent);
-      setMessage(messageContent); // Restore the message
+      // Mark optimistic message as error or handle fallback
+      if (optimisticMessageId && markOptimisticMessageAsError) {
+        markOptimisticMessageAsError(optimisticMessageId);
+      } else {
+        // Fallback to original error handling if optimistic updates not available
+        setError(errorMessage);
+        setLastFailedMessage(messageContent);
+        setMessage(messageContent); // Restore the message
+      }
     } finally {
       setIsSending(false);
     }

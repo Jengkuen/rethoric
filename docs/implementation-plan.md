@@ -150,7 +150,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 #### 3.4 Convex Reactivity Implementation
 - [x] Leverage Convex's automatic real-time updates for message display
 - [x] Implement proper authenticated `useQuery` patterns with skip logic
-- [ ] Use Convex's built-in optimistic updates for message sending
+- [x] Use Convex's built-in optimistic updates for message sending
 - [x] Add proper loading and error states using Convex hooks with auth guards
 - [x] Implement efficient re-rendering with Convex subscriptions and auth state
 
