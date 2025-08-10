@@ -155,11 +155,11 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [x] Implement efficient re-rendering with Convex subscriptions and auth state
 
 #### 3.5 Agent SDK Foundation Setup
-- [ ] Install and configure `@convex-dev/agents` package
-- [ ] Set up basic agent configuration in `convex.config.ts`
-- [ ] Create placeholder action for AI response generation
-- [ ] Implement conversation context building for agent calls
-- [ ] Add proper error handling for future agent integrations
+- [x] Install and configure `@convex-dev/agent` package
+- [x] Set up basic agent configuration in `convex.config.ts`
+- [x] Create placeholder action for AI response generation
+- [x] Implement conversation context building for agent calls
+- [x] Add proper error handling for future agent integrations
 
 #### 3.6 UI/UX Implementation
 - [ ] Implement dark theme with specified color scheme
