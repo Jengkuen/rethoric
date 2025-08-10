@@ -1,72 +1,65 @@
 import { v } from "convex/values";
 import { action } from "./_generated/server";
 import { api } from "./_generated/api";
-// Phase 4.2 imports - will be activated when fully implementing agent
-// import { Agent } from "@convex-dev/agent";
-// import { google } from "@ai-sdk/google";
-// import { components } from "./_generated/api"; // Will be available after proper agent setup
+import { Agent, createTool } from "@convex-dev/agent";
+import { google } from "@ai-sdk/google";
+import { componentsGeneric } from "convex/server";
+import { z } from "zod";
 
-// Agent tools for conversation analysis and guidance
+// Agent tools for conversation analysis and guidance (Phase 4.2)
 const agentTools = {
-  // Tool for analyzing conversation patterns
-  analyzeConversation: {
-    description: "Analyze the conversation flow and identify areas for deeper questioning",
-    parameters: {
-      type: "object",
-      properties: {
-        messages: {
-          type: "array",
-          items: { type: "object" },
-          description: "Recent conversation messages"
-        },
-        currentTopic: {
-          type: "string", 
-          description: "The current topic being discussed"
-        }
-      },
-      required: ["messages", "currentTopic"]
-    },
-    handler: async (args: any) => {
-      // Analyze conversation depth and suggest follow-up questions
+  analyzeConversation: createTool({
+    description:
+      "Analyze recent messages to gauge conversation depth and suggest follow-up questions.",
+    args: z.object({
+      messages: z
+        .array(
+          z.object({
+            role: z.string(),
+            content: z.string(),
+            timestamp: z.number().optional(),
+          }),
+        )
+        .min(1),
+      currentTopic: z.string().describe("The current topic being discussed"),
+    }),
+    handler: async (_ctx, args) => {
       const messageCount = args.messages.length;
       const analysis = {
         depth: messageCount > 5 ? "deep" : messageCount > 2 ? "moderate" : "surface",
         suggestedQuestions: generateFollowUpQuestions(args.currentTopic, messageCount),
-        conversationStage: getConversationStage(messageCount)
+        conversationStage: getConversationStage(messageCount),
       };
       return analysis;
-    }
-  },
-
-  // Tool for checking critical thinking patterns
-  assessThinking: {
-    description: "Assess the quality of user's critical thinking and suggest improvements",
-    parameters: {
-      type: "object",
-      properties: {
-        userResponse: {
-          type: "string",
-          description: "The user's latest response to analyze"
-        },
-        context: {
-          type: "object",
-          description: "Conversation context for analysis"
-        }
-      },
-      required: ["userResponse"]
     },
-    handler: async (args: any) => {
-      // Assess critical thinking elements
+  }),
+
+  assessThinking: createTool({
+    description:
+      "Assess the quality of the user's critical thinking and suggest improvements.",
+    args: z.object({
+      userResponse: z.string(),
+      context: z
+        .object({
+          questionTitle: z.string().optional(),
+          tags: z.array(z.string()).optional(),
+        })
+        .optional(),
+    }),
+    handler: async (_ctx, args) => {
       const assessment = {
-        hasEvidence: args.userResponse.includes("because") || args.userResponse.includes("evidence"),
-        considersAlternatives: args.userResponse.includes("however") || args.userResponse.includes("alternatively"),
-        questionsConcepts: args.userResponse.includes("?") || args.userResponse.includes("what if"),
+        hasEvidence:
+          args.userResponse.includes("because") || args.userResponse.includes("evidence"),
+        considersAlternatives:
+          args.userResponse.includes("however") || args.userResponse.includes("alternatively"),
+        questionsConcepts:
+          args.userResponse.includes("?") || args.userResponse.toLowerCase().includes("what if"),
         thinkingDepth: args.userResponse.length > 100 ? "detailed" : "brief",
-        suggestions: generateThinkingImprovement(args.userResponse)
+        suggestions: generateThinkingImprovement(args.userResponse),
       };
       return assessment;
-    }
-  }
+    },
+  }),
 };
 
 // Helper functions for agent tools
@@ -177,27 +170,51 @@ const AgentErrorHandler = {
   }
 };
 
-// Configure the reasoning coach agent with Gemini 2.5 Flash
-// Note: This will be fully activated in Phase 4.2 when components are available
-const createReasoningCoachAgent = (_components: any) => {
+// Socratic mentor system prompt
+const SOCraticMentorInstructions = `
+You are Rethoric, a Socratic mentor. Your goal is to help the user sharpen their reasoning by:
+- Asking concise, high-impact questions
+- Surfacing assumptions, evidence, alternatives, implications
+- Encouraging reflection, not giving answers
+- Maintaining psychological safety and curiosity
+
+Guidelines:
+- Prefer questions over statements; 1–2 sentences each
+- Use plain language; avoid jargon
+- Vary question types: assumptions, evidence, counterexamples, implications, definitions, analogies
+- Calibrate depth to the stage of conversation (opening, exploring, deepening, synthesizing)
+- When appropriate, summarize briefly then ask a follow-up
+- If user is stuck, offer 2–3 small directions to choose from
+`;
+
+// Configure the reasoning coach agent with Gemini 2.5 Flash (Phase 4.2)
+const createReasoningCoachAgent = () => {
   try {
-    // TODO: Phase 4.2 - Full agent implementation
-    // For now, return a mock configuration to avoid API issues
-    return {
+    const genericComponents = componentsGeneric() as unknown as any;
+    const agent = new Agent(genericComponents.agent as any, {
       name: "ReasoningCoach",
-      model: "gemini-2.5-flash",
-      instructions: `You are a Socratic mentor helping users develop critical thinking skills through thoughtful questioning and guided discovery.`,
+      // Cast to satisfy Agent's LanguageModelV1 expectation against provider v2 types
+      chat: google.chat("gemini-2.5-flash") as unknown as any,
+      textEmbedding: google.textEmbedding("text-embedding-004") as unknown as any,
+      instructions: SOCraticMentorInstructions,
       tools: agentTools,
-      ready: false, // Will be true in Phase 4.2
-    };
-    
-    // Phase 4.2 implementation will use:
-    // return new Agent(components.agent, {
-    //   name: "ReasoningCoach", 
-    //   chat: google("gemini-2.5-flash"),
-    //   instructions: `...full instructions...`,
-    //   tools: agentTools,
-    // });
+      maxSteps: 3,
+      maxRetries: 2,
+      contextOptions: {
+        recentMessages: 12,
+        excludeToolMessages: true,
+        searchOptions: {
+          limit: 6,
+          textSearch: true,
+          vectorSearch: true,
+          vectorScoreThreshold: 0,
+          messageRange: { before: 2, after: 1 },
+        },
+        searchOtherThreads: false,
+      },
+      storageOptions: { saveMessages: "promptAndOutput" },
+    });
+    return agent;
   } catch (error) {
     console.error("Failed to create reasoning coach agent:", error);
     throw new Error(`Agent initialization failed: ${error}`);
@@ -208,15 +225,14 @@ const createReasoningCoachAgent = (_components: any) => {
 export const getAgentConfig = action({
   args: {},
   handler: async (_ctx) => {
-    // This uses createReasoningCoachAgent to avoid linter warnings
-    const agentConfig = createReasoningCoachAgent(null);
+    const agent = createReasoningCoachAgent();
     return {
       success: true,
       config: {
-        name: agentConfig.name,
-        model: agentConfig.model,
-        ready: agentConfig.ready,
-        phase: "4.1-setup-complete"
+        name: "ReasoningCoach",
+        model: "gemini-2.5-flash",
+        ready: true,
+        phase: "4.2-agent-implemented",
       }
     };
   },
@@ -240,13 +256,12 @@ export const generateAIResponse = action({
   }> => {
     let attempt = 1;
     const maxRetries = 3;
-    
+
     while (attempt <= maxRetries) {
       try {
-        // Note: This will be uncommented once components are properly available
-        // const reasoningCoach = createReasoningCoachAgent(components);
-        
-        // Build the conversation context
+        const reasoningCoach = createReasoningCoachAgent();
+
+        // Build the conversation context (for extra guidance in system prompt)
         const contextResult: {
           success: boolean;
           context?: any;
@@ -254,29 +269,49 @@ export const generateAIResponse = action({
           error?: string;
           details?: string;
         } = await ctx.runAction(api.agents.buildConversationContext, { conversationId });
-        
+
         if (!contextResult.success) {
           throw new Error(`Failed to build conversation context: ${contextResult.error}`);
         }
-        
-        // TODO: Phase 4.2 - Replace with actual agent implementation
-        // const { threadId: newThreadId, thread } = threadId 
-        //   ? await reasoningCoach.getThread(threadId)
-        //   : await reasoningCoach.createThread(ctx);
-        
-        // const result = await thread.generateText({
-        //   prompt: userMessage,
-        //   // Additional context from conversation
-        //   context: contextResult.context
-        // });
-        
-        // Placeholder implementation with error handling - will be replaced in Phase 4.2
-        const aiResponse = await generateSocraticResponseWithRetry(userMessage, contextResult.context, attempt);
-        
+
+        // Ensure a thread exists
+        let ensuredThreadId = threadId;
+        if (!ensuredThreadId) {
+          const identity = await ctx.auth.getUserIdentity();
+          const { threadId: newThreadId } = await reasoningCoach.createThread(ctx, {
+            userId: identity?.subject ?? undefined,
+            title: contextResult.context?.question?.title ?? `Conversation ${conversationId}`,
+          });
+          ensuredThreadId = newThreadId;
+        }
+
+        // Continue the thread and stream the response so deltas are persisted
+        const { thread } = await reasoningCoach.continueThread(ctx, {
+          threadId: ensuredThreadId!,
+          userId: undefined,
+        });
+
+        const system = buildDynamicSystemPrompt(contextResult.context);
+
+        const result = await thread.streamText(
+          {
+            system,
+            messages: [{ role: "user", content: userMessage }],
+          },
+          {
+            saveStreamDeltas: true,
+            contextOptions: reasoningCoach["options"].contextOptions,
+            storageOptions: reasoningCoach["options"].storageOptions,
+          },
+        );
+
+        // Consume the stream to ensure completion
+        await result.consumeStream();
+
         return {
           success: true,
-          response: aiResponse,
-          threadId: threadId || `thread_${conversationId}_${Date.now()}`,
+          response: await result.text,
+          threadId: ensuredThreadId,
           metadata: {
             conversationId,
             model: "gemini-2.5-flash",
@@ -285,19 +320,15 @@ export const generateAIResponse = action({
             attempt,
           },
         };
-        
       } catch (error) {
         console.error(`AI Response Generation Error (attempt ${attempt}):`, error);
-        
-        // Check if we should retry
-        const errorResult = await AgentErrorHandler.handleAPIError(error, 'generateResponse', attempt);
-        
+
+        const errorResult = await AgentErrorHandler.handleAPIError(error, "generateResponse", attempt);
         if (errorResult.shouldRetry && attempt < maxRetries) {
           attempt = errorResult.attempt;
-          continue; // Retry the operation
+          continue;
         }
-        
-        // Return fallback response or final error
+
         if (errorResult.fallback) {
           return {
             ...errorResult,
@@ -311,7 +342,7 @@ export const generateAIResponse = action({
             },
           };
         }
-        
+
         return {
           success: false,
           error: "Failed to generate AI response after retries",
@@ -320,13 +351,8 @@ export const generateAIResponse = action({
         };
       }
     }
-    
-    // This should never be reached, but TypeScript requires it
-    return {
-      success: false,
-      error: "Maximum retries exceeded",
-      attempts: maxRetries,
-    };
+
+    return { success: false, error: "Maximum retries exceeded", attempts: maxRetries };
   },
 });
 
@@ -359,13 +385,13 @@ export const createAgentThread = action({
   },
   handler: async (_ctx, { conversationId, questionTitle }) => {
     try {
-      // TODO: Phase 4.2 - Replace with actual agent implementation
-      // const reasoningCoach = createReasoningCoachAgent(components);
-      // const { threadId, thread } = await reasoningCoach.createThread(ctx);
-      
-      // For now, create a deterministic thread ID
-      const threadId = `thread_${conversationId}_${Date.now()}`;
-      
+      const reasoningCoach = createReasoningCoachAgent();
+      const identity = await _ctx.auth.getUserIdentity();
+      const { threadId } = await reasoningCoach.createThread(_ctx, {
+        userId: identity?.subject ?? undefined,
+        title: questionTitle,
+      });
+
       return {
         success: true,
         threadId,
@@ -480,3 +506,16 @@ export const buildConversationContext = action({
     }
   },
 });
+
+function buildDynamicSystemPrompt(context: any | undefined): string {
+  const title = context?.question?.title;
+  const description = context?.question?.description;
+  const tags = context?.question?.tags as string[] | undefined;
+  const stage = getConversationStage(context?.messages?.length ?? 0);
+  const topicLine = title ? `Topic: ${title}` : undefined;
+  const descLine = description ? `Context: ${description}` : undefined;
+  const tagsLine = tags && tags.length > 0 ? `Tags: ${tags.join(", ")}` : undefined;
+  const stageLine = `Stage: ${stage}`;
+  const extras = [topicLine, descLine, tagsLine, stageLine].filter(Boolean).join("\n");
+  return `${SOCraticMentorInstructions}\n\n${extras}`.trim();
+}

@@ -208,11 +208,11 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [x] Add proper agent error handling and fallback strategies
 
 #### 4.2 AI Agent Implementation
-- [ ] Create `reasoningCoachAgent` using Convex Agent SDK patterns
-- [ ] Implement agent system prompts for Socratic mentoring
-- [ ] Build agent tools for conversation analysis and guidance
-- [ ] Add agent memory management for conversation context
-- [ ] Create agent response streaming for real-time user experience
+- [x] Create `reasoningCoachAgent` using Convex Agent SDK patterns
+- [x] Implement agent system prompts for Socratic mentoring
+- [x] Build agent tools for conversation analysis and guidance
+- [x] Add agent memory management for conversation context
+- [x] Create agent response streaming for real-time user experience
 
 #### 4.3 Conversation Flow with Agent Integration
 - [ ] Implement `generateAIResponse` action using agent.run()
