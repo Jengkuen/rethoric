@@ -10,7 +10,7 @@ import { api } from "./_generated/api";
 export const generateAIResponse = action({
   args: {
     conversationId: v.id("conversations"),
-    threadId: v.id("agent:threads"),
+    threadId: v.string(), // Placeholder: will be proper agent thread ID in Phase 4
     userMessage: v.string(),
   },
   handler: async (_ctx, { conversationId, threadId, userMessage: _userMessage }) => {

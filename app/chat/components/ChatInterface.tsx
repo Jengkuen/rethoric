@@ -8,6 +8,8 @@ import { MainContent } from "./MainContent";
 import { NewConversationModal } from "./NewConversationModal";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { CheckCircle, AlertTriangle } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
 
@@ -53,19 +55,44 @@ export function ChatInterface() {
   };
 
   return (
-    <div className="h-screen flex bg-neutral-50 dark:bg-neutral-950">
-      {/* Sidebar */}
-      <Sidebar
-        selectedConversationId={selectedConversationId}
-        onConversationSelect={handleConversationSelect}
-        onNewConversation={handleNewConversation}
-      />
+    <div className="h-screen flex flex-col bg-neutral-50 dark:bg-neutral-950">
+      {/* Header */}
+      <header className="flex items-center justify-between px-4 py-2 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+            Rethoric
+          </h1>
+          <span className="text-sm text-neutral-500 dark:text-neutral-400">
+            Critical Thinking Coach
+          </span>
+        </div>
+        <ThemeToggle />
+      </header>
 
-      {/* Main Content */}
-      <MainContent
-        conversationId={selectedConversationId}
-        onEndConversation={handleEndConversation}
-      />
+      {/* Main Content Area */}
+      <div className="flex flex-1 min-h-0">
+        {/* Sidebar - Hidden on mobile when conversation is selected */}
+        <div className={`${selectedConversationId ? 'hidden md:block' : 'block'} flex-shrink-0`}>
+          <ErrorBoundary>
+            <Sidebar
+              selectedConversationId={selectedConversationId}
+              onConversationSelect={handleConversationSelect}
+              onNewConversation={handleNewConversation}
+            />
+          </ErrorBoundary>
+        </div>
+
+        {/* Main Content - Full width on mobile, flexible on desktop */}
+        <div className={`${selectedConversationId ? 'flex-1' : 'hidden md:flex md:flex-1'} min-w-0`}>
+          <ErrorBoundary>
+            <MainContent
+              conversationId={selectedConversationId}
+              onEndConversation={handleEndConversation}
+              onBackToSidebar={() => setSelectedConversationId(undefined)}
+            />
+          </ErrorBoundary>
+        </div>
+      </div>
 
       {/* New Conversation Modal */}
       <NewConversationModal

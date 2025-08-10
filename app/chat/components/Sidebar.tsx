@@ -5,6 +5,7 @@ import { useAuthQuery } from "@/hooks/useAuthenticatedQuery";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { ConversationListLoading } from "@/components/LoadingStates";
 import { Plus, MessageSquare, Clock } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
 
@@ -22,7 +23,7 @@ export function Sidebar({
   const conversations = useAuthQuery(api.conversations.getUserConversations, {});
 
   return (
-    <div className="w-80 bg-neutral-100 dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex flex-col h-full">
+    <div className="w-full md:w-80 bg-neutral-100 dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b border-neutral-200 dark:border-neutral-800">
         <Button 
@@ -36,28 +37,20 @@ export function Sidebar({
       </div>
 
       {/* Conversations List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2">
-        {conversations === undefined && (
-          <div className="space-y-2">
-            {/* Loading skeleton */}
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="p-3 animate-pulse">
-                <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded mb-2"></div>
-                <div className="h-3 bg-neutral-200 dark:bg-neutral-700 rounded w-3/4"></div>
-              </Card>
-            ))}
-          </div>
-        )}
+      <div className="flex-1 overflow-y-auto">
+        {conversations === undefined && <ConversationListLoading />}
 
         {conversations && conversations.length === 0 && (
-          <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
+          <div className="text-center py-8 text-neutral-500 dark:text-neutral-400 p-4">
             <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No conversations yet</p>
             <p className="text-xs">Start your first conversation above</p>
           </div>
         )}
 
-        {conversations && conversations.map((conversation) => (
+        {conversations && conversations.length > 0 && (
+          <div className="p-4 space-y-2">
+            {conversations.map((conversation) => (
           <Card 
             key={conversation._id}
             className={`p-3 cursor-pointer transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800 ${
@@ -104,7 +97,9 @@ export function Sidebar({
               )}
             </div>
           </Card>
-        ))}
+            ))}
+          </div>
+        )}
       </div>
 
       <Separator />

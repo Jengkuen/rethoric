@@ -8,16 +8,18 @@ import { MessageInput } from "./MessageInput";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { MessageSquare, CheckCircle, Clock, Loader2 } from "lucide-react";
+import { ConversationLoading } from "@/components/LoadingStates";
+import { MessageSquare, CheckCircle, Clock, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Id } from "@/convex/_generated/dataModel";
 
 interface MainContentProps {
   conversationId?: Id<"conversations">;
   onEndConversation?: (conversationId: Id<"conversations">) => void;
+  onBackToSidebar?: () => void;
 }
 
-export function MainContent({ conversationId, onEndConversation }: MainContentProps) {
+export function MainContent({ conversationId, onEndConversation, onBackToSidebar }: MainContentProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const conversationData = useAuthQuery(
@@ -49,14 +51,7 @@ export function MainContent({ conversationId, onEndConversation }: MainContentPr
   }
 
   if (conversationData === undefined) {
-    return (
-      <div className="flex-1 bg-neutral-50 dark:bg-neutral-950 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-neutral-400 dark:text-neutral-600" />
-          <p className="text-neutral-600 dark:text-neutral-400">Loading conversation...</p>
-        </div>
-      </div>
-    );
+    return <ConversationLoading />;
   }
 
   const { messages, conversation } = conversationData;
@@ -67,11 +62,25 @@ export function MainContent({ conversationId, onEndConversation }: MainContentPr
       {/* Header */}
       <div className="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 p-4">
         <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-1">
-              {conversation.question?.title || "Question"}
-            </h1>
-            <div className="flex items-center gap-4 text-sm text-neutral-600 dark:text-neutral-400">
+          <div className="flex items-center gap-3 flex-1">
+            {/* Mobile back button */}
+            {onBackToSidebar && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onBackToSidebar}
+                className="md:hidden"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span className="sr-only">Back to conversations</span>
+              </Button>
+            )}
+            
+            <div className="flex-1">
+              <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-1">
+                {conversation.question?.title || "Question"}
+              </h1>
+              <div className="flex items-center gap-4 text-sm text-neutral-600 dark:text-neutral-400">
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
                 <span>
@@ -91,6 +100,7 @@ export function MainContent({ conversationId, onEndConversation }: MainContentPr
                 )}
                 <span>{isCompleted ? "Completed" : "Active"}</span>
               </div>
+              </div>
             </div>
           </div>
           
@@ -109,7 +119,7 @@ export function MainContent({ conversationId, onEndConversation }: MainContentPr
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-1">
+      <div className="flex-1 overflow-y-auto p-4 space-y-1 scroll-smooth">
         {messages.length === 0 && (
           <div className="text-center py-8">
             <MessageSquare className="h-8 w-8 mx-auto mb-2 text-neutral-400 dark:text-neutral-600" />

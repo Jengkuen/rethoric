@@ -162,11 +162,11 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [x] Add proper error handling for future agent integrations
 
 #### 3.6 UI/UX Implementation
-- [ ] Implement dark theme with specified color scheme
-- [ ] Create responsive layout for mobile and desktop
-- [ ] Add smooth scrolling with auto-scroll to bottom on new messages
-- [ ] Implement Convex loading states and error boundaries
-- [ ] Add message retry functionality using Convex mutations
+- [x] Implement dark theme with specified color scheme
+- [x] Create responsive layout for mobile and desktop
+- [x] Add smooth scrolling with auto-scroll to bottom on new messages
+- [x] Implement Convex loading states and error boundaries
+- [x] Add message retry functionality using Convex mutations
 
 ### Testing Strategy
 - Convex function unit tests with proper mock data and authentication

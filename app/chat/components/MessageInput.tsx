@@ -5,7 +5,7 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, AlertTriangle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Id } from "@/convex/_generated/dataModel";
 
@@ -22,6 +22,8 @@ export function MessageInput({
 }: MessageInputProps) {
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
   
   const addMessage = useMutation(api.conversations.addMessage);
 
@@ -33,6 +35,8 @@ export function MessageInput({
     const messageContent = message.trim();
     setMessage("");
     setIsSending(true);
+    setError(null);
+    setLastFailedMessage(null);
     
     try {
       await addMessage({
@@ -42,12 +46,26 @@ export function MessageInput({
       });
       
       onMessageSent?.();
-    } catch (error) {
-      console.error("Failed to send message:", error);
-      // Restore the message on error
-      setMessage(messageContent);
+    } catch (err) {
+      console.error("Failed to send message:", err);
+      
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : "Failed to send message. Please try again.";
+      
+      setError(errorMessage);
+      setLastFailedMessage(messageContent);
+      setMessage(messageContent); // Restore the message
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleRetry = () => {
+    if (lastFailedMessage) {
+      setMessage(lastFailedMessage);
+      setError(null);
+      setLastFailedMessage(null);
     }
   };
 
@@ -61,8 +79,30 @@ export function MessageInput({
   const canSend = message.trim().length > 0 && !isSending && !disabled;
 
   return (
-    <form onSubmit={handleSubmit} className="border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4">
-      <div className="flex gap-3 items-end">
+    <div className="border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+      {/* Error Message */}
+      {error && (
+        <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border-b border-red-200 dark:border-red-800">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+            <span className="text-sm text-red-700 dark:text-red-300">{error}</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleRetry}
+              className="ml-auto text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+            >
+              <RefreshCw className="h-3 w-3 mr-1" />
+              Retry
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Input Form */}
+      <form onSubmit={handleSubmit} className="p-4">
+        <div className="flex gap-3 items-end">
         <div className="flex-1">
           <Textarea
             value={message}
@@ -103,6 +143,7 @@ export function MessageInput({
           {message.length} characters
         </div>
       )}
-    </form>
+      </form>
+    </div>
   );
 }
