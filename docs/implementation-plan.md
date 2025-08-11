@@ -7,9 +7,11 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 ---
 
 ## Phase 1: Core Foundation & Database Setup
+
 **Duration: 1-2 sprints | Dependencies: None**
 
 ### Objectives
+
 - Set up project structure and development environment
 - Implement database schema and core data models
 - Establish authentication system
@@ -18,12 +20,14 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 ### Deliverables
 
 #### 1.1 Project Setup
+
 - [x] Initialize Next.js 14+ project with TypeScript
 - [x] Configure Convex backend with proper environment setup
 - [x] Install and configure Shadcn/UI components
 - [x] Set up development scripts and linting
 
 #### 1.2 Database Schema Implementation
+
 - [x] Implement `conversations` table with proper indexing
 - [x] Implement `messages` table with conversation relationships
 - [x] Implement `questions` table with category and tag support
@@ -33,6 +37,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [x] Create database validation schemas using Convex validators
 
 #### 1.3 Authentication Setup
+
 - [x] Configure Clerk Auth integration with Convex
 - [x] Create Clerk sign-in and sign-up pages using Clerk components
 - [x] Implement lazy user creation pattern in Convex queries/mutations
@@ -40,17 +45,20 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [x] Build user profile components with direct Convex queries
 
 #### 1.4 Basic Convex Functions
+
 - [x] Set up proper error handling and validation
 - [x] Implement user session management
 - [x] Defer CRUD operations to feature-specific implementations (Phase 2+)
 
 ### Testing Strategy
+
 - Unit tests for database schema validation
 - Integration tests for authentication flows
 - End-to-end tests for user registration/login
 - Database migration and rollback procedures
 
 ### Success Criteria
+
 - All database tables created with proper relationships
 - User can register, login, and access protected areas
 - Development environment fully functional
@@ -59,9 +67,11 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 ---
 
 ## Phase 2: Question Management & Selection Logic
+
 **Duration: 1 sprint | Dependencies: Phase 1**
 
 ### Objectives
+
 - Implement intelligent question selection algorithm
 - Create question management system
 - Build efficient question filtering and tracking
@@ -70,11 +80,13 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 ### Deliverables
 
 #### 2.1 Core Data Models & Schema Updates
+
 - [x] Add `isDaily` and `dailyDate` fields to questions table
 - [x] Implement compound indexes: `by_user_answered` on `[userId, questionId]`
 - [x] Add `by_daily` index on `[isDaily, dailyDate]` for daily question queries
 
 #### 2.2 Question Selection Engine
+
 - [x] Implement `getNextQuestionForUser(userId)` as primary query function
 - [x] Build daily question priority check with date-based filtering
 - [x] Create efficient unanswered question lookup using compound indexes
@@ -82,6 +94,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [x] Add completion state handling for when all questions are answered
 
 #### 2.3 Question Database Operations
+
 - [x] Create basic CRUD functions: createQuestion, getQuestion, updateQuestion, deleteQuestion
 - [x] Implement listAllQuestions query for admin dashboard
 - [x] Build single-page admin dashboard at /app/admin/questions
@@ -89,18 +102,21 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [x] Implement QuestionTable component with edit/delete actions
 
 #### 2.4 Optimized Query Patterns
+
 - [x] Implement O(log n) compound index lookups for user answered questions
 - [x] Create batch retrieval for user's answered question IDs
 - [x] Add client-side filtering for available question randomization
 - [x] Implement caching strategy for daily questions with date-based invalidation
 
 ### Testing Strategy
+
 - Unit tests for question selection algorithms
 - Performance tests for compound index queries
 - Integration tests for question-user relationship tracking
 - Load tests for question selection under high user volume
 
 ### Success Criteria
+
 - Primary `getNextQuestionForUser` function returns correct question in O(log n) time
 - Daily questions take priority and rotate correctly with date-based logic
 - Compound index queries perform efficiently under load
@@ -111,9 +127,11 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 ---
 
 ## Phase 3: Chat Interface & Convex-Powered Messaging
+
 **Duration: 2 sprints | Dependencies: Phase 1, 2**
 
 ### Objectives
+
 - Build responsive chat interface leveraging Convex reactivity
 - Implement real-time messaging using Convex subscriptions
 - Create conversation management with Convex queries/mutations
@@ -122,6 +140,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 ### Deliverables
 
 #### 3.1 Convex Backend Functions
+
 - [x] Implement `startNewConversation` mutation with question selection integration
 - [x] Create `addMessage` mutation with proper validation and indexing
 - [x] Build `getConversationMessages` query (simplified, no pagination needed)
@@ -130,6 +149,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [x] Remove unnecessary messageCount tracking from schema and functions
 
 #### 3.2 Authentication System Implementation
+
 - [x] Install convex-helpers package for custom authentication functions
 - [x] Create backend authenticated function helpers (authQuery, authMutation, authAction)
 - [x] Implement AuthenticationRequired utility with proper error handling
@@ -139,6 +159,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [x] Eliminate authentication boilerplate code across all functions
 
 #### 3.3 Core Chat Components with Convex Integration
+
 - [x] Build `Sidebar` component using authenticated queries for real-time conversation list
 - [x] Create `MainContent` component with Convex subscription management and auth guards
 - [x] Implement `MessageBubble` with role-based styling and loading states
@@ -148,6 +169,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [x] Build `NewConversationModal` for question selection and conversation creation
 
 #### 3.4 Convex Reactivity Implementation
+
 - [x] Leverage Convex's automatic real-time updates for message display
 - [x] Implement proper authenticated `useQuery` patterns with skip logic
 - [x] Use Convex's built-in optimistic updates for message sending
@@ -155,6 +177,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [x] Implement efficient re-rendering with Convex subscriptions and auth state
 
 #### 3.5 Agent SDK Foundation Setup
+
 - [x] Install and configure `@convex-dev/agent` package
 - [x] Set up basic agent configuration in `convex.config.ts`
 - [x] Create placeholder action for AI response generation
@@ -162,6 +185,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [x] Add proper error handling for future agent integrations
 
 #### 3.6 UI/UX Implementation
+
 - [x] Implement dark theme with specified color scheme
 - [x] Create responsive layout for mobile and desktop
 - [x] Add smooth scrolling with auto-scroll to bottom on new messages
@@ -169,6 +193,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [x] Add message retry functionality using Convex mutations
 
 ### Testing Strategy
+
 - Convex function unit tests with proper mock data and authentication
 - Authentication race condition testing with skip logic
 - Real-time subscription testing across multiple clients
@@ -178,6 +203,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - Cross-browser compatibility testing
 
 ### Success Criteria
+
 - All Convex functions use consistent authentication patterns
 - Client-side queries properly handle authentication race conditions
 - Messages appear instantly using Convex reactivity with auth guards
@@ -190,9 +216,11 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 ---
 
 ## Phase 4: AI Agent Integration with Convex Agent SDK
+
 **Duration: 2 sprints | Dependencies: Phase 3**
 
 ### Objectives
+
 - Implement Convex Agent SDK with Gemini 2.5 Flash
 - Create AI reasoning coach using Agent patterns
 - Build sophisticated conversation flow management
@@ -201,6 +229,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 ### Deliverables
 
 #### 4.1 Convex Agent SDK Configuration
+
 - [x] Configure Gemini 2.5 Flash provider in `convex.config.ts`
 - [x] Set up agent API key management using Convex environment variables
 - [x] Create base agent configuration with proper model settings
@@ -208,6 +237,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [x] Add proper agent error handling and fallback strategies
 
 #### 4.2 AI Agent Implementation
+
 - [x] Create `reasoningCoachAgent` using Convex Agent SDK patterns
 - [x] Implement agent system prompts for Socratic mentoring
 - [x] Build agent tools for conversation analysis and guidance
@@ -215,13 +245,14 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [x] Create agent response streaming for real-time user experience
 
 #### 4.3 Conversation Flow with Agent Integration
+
 - [ ] Implement `generateAIResponse` action using agent.run()
 - [ ] Build conversation context passing to agent calls
-- [ ] Create agent-powered conversation completion detection
 - [ ] Add agent tools for follow-up question generation
 - [ ] Implement conversation flow state management with agents
 
 #### 4.4 Advanced Agent Features
+
 - [ ] Create category-specific agent personas and tools
 - [ ] Implement agent-powered conversation analysis
 - [ ] Build agent tools for progress tracking and insights
@@ -229,6 +260,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [ ] Create agent-driven adaptive questioning strategies
 
 #### 4.5 Convex Integration Patterns
+
 - [ ] Use Convex actions for agent execution with proper error boundaries
 - [ ] Implement agent response caching using Convex storage
 - [ ] Add agent conversation history integration with Convex queries
@@ -236,6 +268,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [ ] Build agent monitoring and logging using Convex patterns
 
 #### 4.6 Real-time Agent Response Handling
+
 - [ ] Implement streaming agent responses in chat interface
 - [ ] Add real-time agent thinking indicators
 - [ ] Create progressive response rendering for long agent outputs
@@ -243,6 +276,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [ ] Add agent response quality validation and filtering
 
 ### Testing Strategy
+
 - Agent SDK integration tests with mock providers
 - Agent tool functionality and conversation flow testing
 - Agent response quality and consistency validation
@@ -252,6 +286,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - Agent memory and context management testing
 
 ### Success Criteria
+
 - Agent responses consistently embody Socratic mentor persona
 - Agent execution times under 3 seconds for 95% of interactions
 - Agent context maintained throughout complex conversations
@@ -263,9 +298,11 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 ---
 
 ## Phase 5: Conversation Completion & Report Generation
+
 **Duration: 1-2 sprints | Dependencies: Phase 4**
 
 ### Objectives
+
 - Implement conversation ending workflow
 - Build AI-powered report generation system
 - Create structured report display interface
@@ -274,27 +311,32 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 ### Deliverables
 
 #### 5.1 Conversation Completion System
+
 - [ ] Build `endConversation` mutation with confirmation flow
 - [ ] Implement conversation status transitions
 - [ ] Create user stats updates (streak, total conversations)
 - [ ] Add answered question tracking with compound indexing
 
 #### 5.2 AI Report Generation
+
 - [ ] Implement `generateReport` action for conversation analysis
 - [ ] Design report analysis prompts for conversation evaluation
 - [ ] Build structured report data extraction
 - [ ] Create report quality validation
 
 #### 5.3 Report Display Interface
+
 - [ ] Build `ReportDisplay` component with structured sections
 - [ ] Implement toggle view between conversation and report
 - [ ] Create interactive follow-up question links
 
 #### 5.4 User Progress Tracking
+
 - [ ] Implement streak calculation and maintenance
 - [ ] Create basic progress visualization components
 
 ### Testing Strategy
+
 - End-to-end conversation completion flow testing
 - AI report generation quality and consistency testing
 - Report display component testing across devices
@@ -302,6 +344,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - Performance testing for report generation
 
 ### Success Criteria
+
 - Conversation completion flow intuitive and reliable
 - Reports provide meaningful insights and feedback
 - Toggle view between conversation and report seamless
@@ -311,9 +354,11 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 ---
 
 ## Phase 6: Performance Optimization & Polish
+
 **Duration: 1 sprint | Dependencies: Phase 5**
 
 ### Objectives
+
 - Optimize application performance for scale
 - Implement advanced UX enhancements
 - Add comprehensive error handling
@@ -322,21 +367,25 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 ### Deliverables
 
 #### 6.1 Performance Optimization
+
 - [ ] Implement virtual scrolling for large conversation lists
 - [ ] Optimize Convex query patterns
 - [ ] Implement code splitting and bundle optimization
 
 #### 6.2 Error Handling & Polish
+
 - [ ] Implement comprehensive error boundary system
 - [ ] Add user feedback and bug reporting system
 - [ ] Create user preferences and customization options
 
 ### Testing Strategy
+
 - Performance profiling and optimization verification
 - End-to-end testing of complete user journeys
 - Error handling and recovery testing
 
 ### Success Criteria
+
 - Smooth performance with optimized queries
 - Page load times under 2 seconds
 - Comprehensive error recovery mechanisms
@@ -347,24 +396,28 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 ## Development Guidelines
 
 ### Phase Isolation Principles
+
 1. **Clear Dependencies**: Each phase has explicit dependencies on previous phases
 2. **Testable Boundaries**: Each phase has well-defined testing criteria
 3. **Incremental Value**: Each phase delivers working functionality
 4. **Rollback Safety**: Each phase can be reverted without affecting others
 
 ### AI Development Considerations
+
 1. **Atomic Commits**: Each feature should be implemented in focused, atomic commits
 2. **Clear Documentation**: Every function and component should have clear purpose documentation
 3. **Test-Driven Approach**: Write tests before implementing features where possible
 4. **Modular Architecture**: Design components to be easily understood and modified by AI
 
 ### Quality Gates
+
 - **Code Review**: All code must pass automated linting and type checking
 - **Testing**: Each phase must achieve 80%+ test coverage
 - **Performance**: All features must meet specified performance criteria
 - **User Testing**: Each phase should be validated with real user scenarios
 
 ### Risk Mitigation
+
 - **Parallel Development**: Some phases can be developed in parallel where dependencies allow
 - **Fallback Plans**: Each critical feature should have fallback implementations
 - **Monitoring**: Comprehensive monitoring should be implemented from Phase 1

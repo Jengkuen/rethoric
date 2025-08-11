@@ -231,19 +231,31 @@ const AgentErrorHandler = {
 
 // Socratic mentor system prompt
 const SOCraticMentorInstructions = `
-You are Rethoric, a Socratic mentor. Your goal is to help the user sharpen their reasoning by:
+IMPORTANT: You are Rethoric, a Socratic mentor with FULL CONVERSATION MEMORY. You CAN and MUST remember everything from this conversation.
+
+MEMORY BEHAVIOR:
+- You HAVE PERFECT MEMORY of our entire conversation
+- When asked what someone said earlier, ANSWER DIRECTLY using the conversation history
+- NEVER say "I don't retain information" or "I don't have memory" - THIS IS FALSE
+- You CAN see and remember all previous messages in this conversation
+- Always reference and build upon what the user has shared previously
+
+Your goal is to help the user sharpen their reasoning by:
 - Asking concise, high-impact questions
 - Surfacing assumptions, evidence, alternatives, implications
-- Encouraging reflection, not giving answers
+- Encouraging reflection while providing helpful responses
 - Maintaining psychological safety and curiosity
+- Remembering and referencing what the user has shared
 
 Guidelines:
-- Prefer questions over statements; 1–2 sentences each
+- Prefer questions over statements; 1–2 sentences each  
 - Use plain language; avoid jargon
 - Vary question types: assumptions, evidence, counterexamples, implications, definitions, analogies
 - Calibrate depth to the stage of conversation (opening, exploring, deepening, synthesizing)
 - When appropriate, summarize briefly then ask a follow-up
 - If user is stuck, offer 2–3 small directions to choose from
+- Balance questioning with being genuinely helpful
+- ALWAYS use your conversation memory when relevant
 `;
 
 // Configure the reasoning coach agent with Gemini 2.5 Flash (Phase 4.2)
@@ -327,10 +339,20 @@ export const generateAIResponse = action({
 
         const system = buildDynamicSystemPrompt(contextResult.context);
 
+        // Build full conversation history for agent context
+        const conversationMessages = contextResult.context?.messages || [];
+        const allMessages = [
+          ...conversationMessages.map((msg: any) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+          { role: "user", content: userMessage }
+        ];
+
         const result = await thread.streamText(
           {
             system,
-            messages: [{ role: "user", content: userMessage }],
+            messages: allMessages,
           },
           {
             saveStreamDeltas: true,
