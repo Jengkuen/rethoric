@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +17,8 @@ interface MessageInputProps {
   addOptimisticMessage?: (content: string) => string;
   removeOptimisticMessage?: (id: string) => void;
   markOptimisticMessageAsError?: (id: string) => void;
+  // AI thinking state management
+  onAIThinkingChange?: (isThinking: boolean) => void;
 }
 
 export function MessageInput({ 
@@ -25,7 +27,8 @@ export function MessageInput({
   onMessageSent,
   addOptimisticMessage,
   removeOptimisticMessage,
-  markOptimisticMessageAsError
+  markOptimisticMessageAsError,
+  onAIThinkingChange
 }: MessageInputProps) {
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -33,6 +36,7 @@ export function MessageInput({
   const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
   
   const addMessage = useMutation(api.conversations.addMessage);
+  const generateAIResponse = useAction(api.agents.generateAIResponse);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +65,23 @@ export function MessageInput({
       }
       
       onMessageSent?.();
+
+      // Generate AI response asynchronously (Phase 4.3 - don't block user experience)
+      // Show thinking indicator and fire AI request
+      onAIThinkingChange?.(true);
+      
+      generateAIResponse({
+        conversationId,
+        userMessage: messageContent,
+      }).then(() => {
+        // AI response completed successfully
+        onAIThinkingChange?.(false);
+      }).catch((aiError) => {
+        // Log AI errors but don't block user flow
+        console.error("AI response generation failed:", aiError);
+        onAIThinkingChange?.(false);
+      });
+
     } catch (err) {
       console.error("Failed to send message:", err);
       

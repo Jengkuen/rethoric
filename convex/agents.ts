@@ -3,7 +3,7 @@ import { action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { Agent, createTool } from "@convex-dev/agent";
 import { google } from "@ai-sdk/google";
-import { componentsGeneric } from "convex/server";
+import { components } from "./_generated/api";
 import { z } from "zod";
 
 // Agent tools for conversation analysis and guidance (Phase 4.2)
@@ -60,23 +60,52 @@ const agentTools = {
       return assessment;
     },
   }),
+
 };
 
-// Helper functions for agent tools
-function generateFollowUpQuestions(_topic: string, messageCount: number): string[] {
-  const baseQuestions = [
-    "What evidence supports this view?",
-    "What assumptions are you making?",
-    "How might someone disagree with this perspective?",
-    "What are the implications of this thinking?"
+// Enhanced helper functions for agent tools (Phase 4.3)
+function generateFollowUpQuestions(topic: string, messageCount: number): string[] {
+  const explorationQuestions = [
+    "What's your initial reaction to this?",
+    "What comes to mind first when you think about this?",
+    "Can you break this down into smaller parts?"
   ];
-  
-  if (messageCount < 3) {
-    return ["What's your initial reaction to this?", "What comes to mind first?"];
+
+  const evidenceQuestions = [
+    "What evidence supports this view?",
+    "Where might you find reliable information about this?",
+    "What personal experiences relate to this topic?"
+  ];
+
+  const perspectiveQuestions = [
+    "How might someone disagree with this perspective?", 
+    "What would the opposite view look like?",
+    "Who might be most affected by this issue?"
+  ];
+
+  const implicationQuestions = [
+    "What are the implications of this thinking?",
+    "If this were true, what would follow?",
+    "What might be the long-term consequences?"
+  ];
+
+  const synthesisQuestions = [
+    "How do these ideas connect?",
+    "What patterns do you see emerging?",
+    "What's the most important insight you've gained?"
+  ];
+
+  // Progressive question strategy based on conversation depth
+  if (messageCount < 2) {
+    return explorationQuestions.slice(0, 2);
+  } else if (messageCount < 4) {
+    return evidenceQuestions.slice(0, 2);
   } else if (messageCount < 6) {
-    return baseQuestions.slice(0, 2);
+    return perspectiveQuestions.slice(0, 2);
+  } else if (messageCount < 8) {
+    return implicationQuestions.slice(0, 2);
   } else {
-    return baseQuestions.slice(2);
+    return synthesisQuestions.slice(0, 2);
   }
 }
 
@@ -89,16 +118,46 @@ function getConversationStage(messageCount: number): string {
 
 function generateThinkingImprovement(response: string): string[] {
   const suggestions = [];
-  if (!response.includes("because") && !response.includes("evidence")) {
-    suggestions.push("Consider providing evidence or reasoning for your claims");
+  const lowerResponse = response.toLowerCase();
+  
+  // Check for reasoning indicators
+  const reasoningWords = ["because", "since", "due to", "therefore", "thus", "evidence", "research", "studies"];
+  const hasReasoning = reasoningWords.some(word => lowerResponse.includes(word));
+  if (!hasReasoning) {
+    suggestions.push("Try adding reasoning or evidence to support your points");
   }
-  if (!response.includes("however") && !response.includes("but")) {
-    suggestions.push("Try exploring alternative viewpoints or counterarguments");
+  
+  // Check for perspective taking
+  const perspectiveWords = ["however", "but", "on the other hand", "alternatively", "some might argue", "critics"];
+  const hasPerspective = perspectiveWords.some(word => lowerResponse.includes(word));
+  if (!hasPerspective) {
+    suggestions.push("Consider exploring different viewpoints or counterarguments");
   }
+  
+  // Check for questioning/curiosity
+  const hasQuestions = response.includes("?") || lowerResponse.includes("what if") || lowerResponse.includes("i wonder");
+  if (!hasQuestions) {
+    suggestions.push("Try asking questions to deepen your exploration");
+  }
+  
+  // Check for depth and detail
   if (response.length < 50) {
-    suggestions.push("Consider expanding on your thoughts with more detail");
+    suggestions.push("Consider expanding with more specific details or examples");
   }
-  return suggestions;
+  
+  // Check for personal reflection
+  const reflectionWords = ["i think", "i believe", "in my experience", "i feel", "personally"];
+  const hasReflection = reflectionWords.some(word => lowerResponse.includes(word));
+  if (!hasReflection && response.length > 100) {
+    suggestions.push("Connect this to your personal experience or values");
+  }
+  
+  // If no issues found, encourage deeper thinking
+  if (suggestions.length === 0) {
+    suggestions.push("Great thinking! Can you dig even deeper into the implications?");
+  }
+  
+  return suggestions.slice(0, 3); // Limit to 3 suggestions for focus
 }
 
 // Error handling and fallback strategies for agent operations
@@ -188,44 +247,19 @@ Guidelines:
 `;
 
 // Configure the reasoning coach agent with Gemini 2.5 Flash (Phase 4.2)
-const createReasoningCoachAgent = () => {
-  try {
-    const genericComponents = componentsGeneric() as unknown as any;
-    const agent = new Agent(genericComponents.agent as any, {
-      name: "ReasoningCoach",
-      // Cast to satisfy Agent's LanguageModelV1 expectation against provider v2 types
-      chat: google.chat("gemini-2.5-flash") as unknown as any,
-      textEmbedding: google.textEmbedding("text-embedding-004") as unknown as any,
-      instructions: SOCraticMentorInstructions,
-      tools: agentTools,
-      maxSteps: 3,
-      maxRetries: 2,
-      contextOptions: {
-        recentMessages: 12,
-        excludeToolMessages: true,
-        searchOptions: {
-          limit: 6,
-          textSearch: true,
-          vectorSearch: true,
-          vectorScoreThreshold: 0,
-          messageRange: { before: 2, after: 1 },
-        },
-        searchOtherThreads: false,
-      },
-      storageOptions: { saveMessages: "promptAndOutput" },
-    });
-    return agent;
-  } catch (error) {
-    console.error("Failed to create reasoning coach agent:", error);
-    throw new Error(`Agent initialization failed: ${error}`);
-  }
-};
+// Following Convex Agent SDK documentation pattern
+const reasoningCoachAgent = new Agent(components.agent, {
+  name: "ReasoningCoach",
+  chat: google.chat("gemini-2.5-flash") as unknown as any,
+  textEmbedding: google.textEmbedding("text-embedding-004") as unknown as any,
+  instructions: SOCraticMentorInstructions,
+  tools: agentTools,
+});
 
 // Utility to get agent configuration (Phase 4.2 ready)
 export const getAgentConfig = action({
   args: {},
-  handler: async (_ctx) => {
-    const agent = createReasoningCoachAgent();
+  handler: async (ctx) => {
     return {
       success: true,
       config: {
@@ -248,6 +282,7 @@ export const generateAIResponse = action({
   handler: async (ctx, { conversationId, threadId, userMessage }): Promise<{
     success: boolean;
     response?: string;
+    messageId?: string;
     threadId?: string;
     metadata?: any;
     error?: string;
@@ -259,7 +294,6 @@ export const generateAIResponse = action({
 
     while (attempt <= maxRetries) {
       try {
-        const reasoningCoach = createReasoningCoachAgent();
 
         // Build the conversation context (for extra guidance in system prompt)
         const contextResult: {
@@ -278,7 +312,7 @@ export const generateAIResponse = action({
         let ensuredThreadId = threadId;
         if (!ensuredThreadId) {
           const identity = await ctx.auth.getUserIdentity();
-          const { threadId: newThreadId } = await reasoningCoach.createThread(ctx, {
+          const { threadId: newThreadId } = await reasoningCoachAgent.createThread(ctx, {
             userId: identity?.subject ?? undefined,
             title: contextResult.context?.question?.title ?? `Conversation ${conversationId}`,
           });
@@ -286,7 +320,7 @@ export const generateAIResponse = action({
         }
 
         // Continue the thread and stream the response so deltas are persisted
-        const { thread } = await reasoningCoach.continueThread(ctx, {
+        const { thread } = await reasoningCoachAgent.continueThread(ctx, {
           threadId: ensuredThreadId!,
           userId: undefined,
         });
@@ -300,17 +334,25 @@ export const generateAIResponse = action({
           },
           {
             saveStreamDeltas: true,
-            contextOptions: reasoningCoach["options"].contextOptions,
-            storageOptions: reasoningCoach["options"].storageOptions,
           },
         );
 
         // Consume the stream to ensure completion
         await result.consumeStream();
 
+        const aiResponse = await result.text;
+
+        // Save AI response to database using mutation (Convex best practice: Actions can call mutations)
+        const messageId = await ctx.runMutation(api.conversations.addMessage, {
+          conversationId,
+          role: "assistant",
+          content: aiResponse,
+        });
+
         return {
           success: true,
-          response: await result.text,
+          response: aiResponse,
+          messageId,
           threadId: ensuredThreadId,
           metadata: {
             conversationId,
@@ -330,8 +372,16 @@ export const generateAIResponse = action({
         }
 
         if (errorResult.fallback) {
+          // Save fallback response to database
+          const messageId = await ctx.runMutation(api.conversations.addMessage, {
+            conversationId,
+            role: "assistant",
+            content: errorResult.response,
+          });
+
           return {
             ...errorResult,
+            messageId,
             threadId: threadId || `thread_${conversationId}_${Date.now()}`,
             metadata: {
               conversationId,
@@ -356,26 +406,6 @@ export const generateAIResponse = action({
   },
 });
 
-// Temporary helper function for Socratic responses with retry logic (will be replaced by agent in Phase 4.2)
-async function generateSocraticResponseWithRetry(_userMessage: string, context: any, attempt: number): Promise<string> {
-  // This is a temporary implementation that will be replaced by the actual agent
-  const question = context?.question;
-  const messageCount = context?.messages?.length || 0;
-  
-  // Simulate potential failures for testing error handling
-  if (attempt === 1 && Math.random() < 0.1) { // 10% chance of initial failure for testing
-    throw new Error("Simulated API timeout for testing");
-  }
-  
-  // Simple logic based on conversation stage
-  if (messageCount === 0) {
-    return `Great question! Let's explore "${question?.title}" together. What's your initial reaction to this challenge? What thoughts or feelings come up for you first?`;
-  } else if (messageCount < 3) {
-    return `That's an interesting perspective. What assumptions might you be making here? Can you think of any alternative ways to view this situation?`;
-  } else {
-    return `I can see you're thinking deeply about this. What evidence supports your current thinking? Are there any counterarguments you haven't considered yet?`;
-  }
-}
 
 // Create agent thread for new conversations
 export const createAgentThread = action({
@@ -383,11 +413,10 @@ export const createAgentThread = action({
     conversationId: v.id("conversations"),
     questionTitle: v.string(),
   },
-  handler: async (_ctx, { conversationId, questionTitle }) => {
+  handler: async (ctx, { conversationId, questionTitle }) => {
     try {
-      const reasoningCoach = createReasoningCoachAgent();
-      const identity = await _ctx.auth.getUserIdentity();
-      const { threadId } = await reasoningCoach.createThread(_ctx, {
+      const identity = await ctx.auth.getUserIdentity();
+      const { threadId } = await reasoningCoachAgent.createThread(ctx, {
         userId: identity?.subject ?? undefined,
         title: questionTitle,
       });

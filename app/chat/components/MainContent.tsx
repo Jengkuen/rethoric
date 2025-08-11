@@ -33,6 +33,7 @@ interface OptimisticMessage {
 export function MainContent({ conversationId, onEndConversation, onBackToSidebar }: MainContentProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [optimisticMessages, setOptimisticMessages] = useState<OptimisticMessage[]>([]);
+  const [isAIThinking, setIsAIThinking] = useState(false);
   
   const conversationData = useAuthQuery(
     api.conversations.getConversationMessages,
@@ -42,6 +43,7 @@ export function MainContent({ conversationId, onEndConversation, onBackToSidebar
   // Clear optimistic messages when conversation changes
   useEffect(() => {
     setOptimisticMessages([]);
+    setIsAIThinking(false);
   }, [conversationId]);
 
   // Auto-scroll to bottom when new messages arrive
@@ -193,6 +195,22 @@ export function MainContent({ conversationId, onEndConversation, onBackToSidebar
           />
         ))}
 
+        {/* AI Thinking Indicator */}
+        {isAIThinking && (
+          <div className="flex justify-start mb-4">
+            <div className="bg-neutral-100 dark:bg-neutral-800 rounded-2xl px-4 py-3 max-w-[80%]">
+              <div className="flex items-center space-x-2">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-neutral-400 dark:bg-neutral-500 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                  <div className="w-2 h-2 bg-neutral-400 dark:bg-neutral-500 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                  <div className="w-2 h-2 bg-neutral-400 dark:bg-neutral-500 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                </div>
+                <span className="text-neutral-600 dark:text-neutral-400 text-sm">Thinking...</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Completion Message */}
         {isCompleted && (
           <>
@@ -231,6 +249,7 @@ export function MainContent({ conversationId, onEndConversation, onBackToSidebar
           addOptimisticMessage={addOptimisticMessage}
           removeOptimisticMessage={removeOptimisticMessage}
           markOptimisticMessageAsError={markOptimisticMessageAsError}
+          onAIThinkingChange={setIsAIThinking}
         />
       )}
     </div>
