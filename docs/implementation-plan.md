@@ -251,29 +251,18 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - [x] Add agent tools for follow-up question generation
 - [x] Implement conversation flow state management with agents
 
-#### 4.4 Advanced Agent Features
+#### 4.4 Convex Integration Patterns
 
-- [ ] Create category-specific agent personas and tools
-- [ ] Implement agent-powered conversation analysis
-- [ ] Build agent tools for progress tracking and insights
-- [ ] Add agent capability for conversation quality assessment
-- [ ] Create agent-driven adaptive questioning strategies
+- [x] Use Convex actions for agent execution with proper error boundaries
+- [x] Add agent conversation history integration with Convex queries
+- [x] Create agent tool access to Convex database functions
+- [x] Build agent monitoring and logging using Convex patterns
 
-#### 4.5 Convex Integration Patterns
+#### 4.5 Real-time Agent Response Handling
 
-- [ ] Use Convex actions for agent execution with proper error boundaries
-- [ ] Implement agent response caching using Convex storage
-- [ ] Add agent conversation history integration with Convex queries
-- [ ] Create agent tool access to Convex database functions
-- [ ] Build agent monitoring and logging using Convex patterns
-
-#### 4.6 Real-time Agent Response Handling
-
-- [ ] Implement streaming agent responses in chat interface
-- [ ] Add real-time agent thinking indicators
-- [ ] Create progressive response rendering for long agent outputs
-- [ ] Build agent response interruption and retry mechanisms
-- [ ] Add agent response quality validation and filtering
+- [x] Add real-time agent thinking indicators
+- [x] Build agent response interruption and retry mechanisms
+- [x] Add agent response quality validation and filtering
 
 ### Testing Strategy
 
@@ -284,6 +273,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - Agent error handling and recovery testing
 - Load testing for concurrent agent conversations
 - Agent memory and context management testing
+- Real-time thinking indicator UI testing
 
 ### Success Criteria
 
@@ -292,7 +282,7 @@ This document outlines a phased implementation plan for building Rethoric, a cri
 - Agent context maintained throughout complex conversations
 - Agent tools properly integrated with Convex database operations
 - Agent error handling provides graceful degradation
-- Agent streaming responses provide smooth user experience
+- Real-time thinking indicators provide clear user feedback
 - Agent conversation analysis provides meaningful insights
 
 ---
