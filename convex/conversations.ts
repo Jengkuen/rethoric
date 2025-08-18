@@ -1,5 +1,4 @@
 import { v } from "convex/values";
-import type { Id } from "./_generated/dataModel";
 import { authQuery, authMutation, getCurrentUser, validateConversationOwnership } from "./lib/auth";
 
 // Start a new conversation with question selection  
@@ -175,6 +174,48 @@ export const updateConversationStatus = authMutation({
     }
 
     await ctx.db.patch(conversationId, updates);
+
+    return { success: true };
+  },
+});
+
+// Delete a conversation and its messages (hard delete)
+export const deleteConversation = authMutation({
+  args: {
+    conversationId: v.id("conversations"),
+  },
+  handler: async (ctx, { conversationId }) => {
+    // Auth is guaranteed, get user when needed
+    const user = await getCurrentUser(ctx);
+    
+    // Validate conversation ownership
+    await validateConversationOwnership(ctx, conversationId, user._id);
+
+    // Delete all messages associated with the conversation
+    const messages = await ctx.db
+      .query("messages")
+      .withIndex("by_conversation_timestamp", (q) => 
+        q.eq("conversationId", conversationId)
+      )
+      .collect();
+
+    for (const message of messages) {
+      await ctx.db.delete(message._id);
+    }
+
+    // Delete any user_answered_questions records for this conversation
+    const userAnsweredQuestions = await ctx.db
+      .query("user_answered_questions")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .filter((q) => q.eq(q.field("conversationId"), conversationId))
+      .collect();
+
+    for (const record of userAnsweredQuestions) {
+      await ctx.db.delete(record._id);
+    }
+
+    // Delete the conversation itself
+    await ctx.db.delete(conversationId);
 
     return { success: true };
   },
