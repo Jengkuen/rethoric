@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useMutation } from "convex/react";
+import { useAuthQuery } from "@/hooks/useAuthenticatedQuery";
 import { api } from "@/convex/_generated/api";
+import type { FunctionReturnType } from "convex/server";
 import { Sidebar } from "./Sidebar";
 import { MainContent } from "./MainContent";
 import { NewConversationModal } from "./NewConversationModal";
@@ -13,6 +15,9 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { CheckCircle, AlertTriangle } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
 
+// Use Convex's generated type for conversation data
+type ConversationData = FunctionReturnType<typeof api.conversations.getConversationMessages>;
+
 export function ChatInterface() {
   const [selectedConversationId, setSelectedConversationId] = useState<Id<"conversations"> | undefined>();
   const [showNewConversationModal, setShowNewConversationModal] = useState(false);
@@ -20,6 +25,12 @@ export function ChatInterface() {
   const [conversationToEnd, setConversationToEnd] = useState<Id<"conversations"> | undefined>();
   
   const updateConversationStatus = useMutation(api.conversations.updateConversationStatus);
+  
+  // Query conversation data for the selected conversation
+  const conversationData: ConversationData | undefined = useAuthQuery(
+    api.conversations.getConversationMessages,
+    selectedConversationId ? { conversationId: selectedConversationId } : "skip"
+  );
 
   const handleConversationSelect = (conversationId: Id<"conversations">) => {
     setSelectedConversationId(conversationId);
@@ -72,9 +83,15 @@ export function ChatInterface() {
         {/* Fixed Header - Never moves */}
         <header className="flex items-center justify-between px-4 py-2 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex-shrink-0">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-neutral-500 dark:text-neutral-400">
-              Critical Thinking Coach
-            </span>
+            {conversationData?.conversation?.question?.title ? (
+              <h2 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
+                {conversationData.conversation.question.title}
+              </h2>
+            ) : (
+              <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                Critical Thinking Coach
+              </span>
+            )}
           </div>
           <ThemeToggle />
         </header>
@@ -84,6 +101,7 @@ export function ChatInterface() {
           <ErrorBoundary>
             <MainContent
               conversationId={selectedConversationId}
+              conversationData={conversationData}
               onEndConversation={handleEndConversation}
               onBackToSidebar={() => setSelectedConversationId(undefined)}
             />

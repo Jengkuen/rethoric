@@ -1,18 +1,22 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useAuthQuery } from "@/hooks/useAuthenticatedQuery";
-import { api } from "@/convex/_generated/api";
 import { MessageBubble } from "./MessageBubble";
 import { MessageInput } from "./MessageInput";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ConversationLoading } from "@/components/LoadingStates";
 import { MessageSquare, CheckCircle } from "lucide-react";
+import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import type { FunctionReturnType } from "convex/server";
+
+// Use Convex's generated type for conversation data
+type ConversationData = FunctionReturnType<typeof api.conversations.getConversationMessages>;
 
 interface MainContentProps {
   conversationId?: Id<"conversations">;
+  conversationData?: ConversationData;
   onEndConversation?: (conversationId: Id<"conversations">) => void;
   onBackToSidebar?: () => void;
 }
@@ -28,15 +32,10 @@ interface OptimisticMessage {
   hasError?: boolean;
 }
 
-export function MainContent({ conversationId }: MainContentProps) {
+export function MainContent({ conversationId, conversationData }: MainContentProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [optimisticMessages, setOptimisticMessages] = useState<OptimisticMessage[]>([]);
   const [isAIThinking, setIsAIThinking] = useState(false);
-  
-  const conversationData = useAuthQuery(
-    api.conversations.getConversationMessages,
-    conversationId ? { conversationId } : "skip"
-  );
 
   // Clear optimistic messages when conversation changes
   useEffect(() => {
