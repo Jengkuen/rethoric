@@ -179,3 +179,52 @@ export const updateConversationStatus = authMutation({
     return { success: true };
   },
 });
+
+// Start a new conversation with a custom question (atomic operation)
+export const startConversationWithCustomQuestion = authMutation({
+  args: {
+    customQuestionText: v.string(),
+  },
+  handler: async (ctx, { customQuestionText }) => {
+    // Auth is guaranteed, get user when needed
+    const user = await getCurrentUser(ctx);
+    
+    // Validate custom question text is not empty
+    if (!customQuestionText.trim()) {
+      throw new Error("Question text cannot be empty");
+    }
+
+    // Create the custom question first
+    const questionId = await ctx.db.insert("questions", {
+      title: customQuestionText.trim(),
+      description: customQuestionText.trim(),
+      tags: ["custom"],
+      isDaily: false,
+      createdAt: Date.now(),
+    });
+
+    // Create the conversation with the new question
+    const conversationId = await ctx.db.insert("conversations", {
+      userId: user._id,
+      questionId,
+      status: "active",
+      startedAt: Date.now(),
+    });
+
+    // Add the initial system message with the custom question
+    await ctx.db.insert("messages", {
+      conversationId,
+      role: "assistant",
+      content: `**${customQuestionText.trim()}**\n\nLet's explore this question together. What are your initial thoughts?`,
+      timestamp: Date.now(),
+    });
+
+    // Get the created question for return
+    const question = await ctx.db.get(questionId);
+
+    return {
+      conversationId,
+      question,
+    };
+  },
+});

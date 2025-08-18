@@ -7,7 +7,7 @@ import { api } from "@/convex/_generated/api";
 import type { FunctionReturnType } from "convex/server";
 import { Sidebar } from "./Sidebar";
 import { MainContent } from "./MainContent";
-import { NewConversationModal } from "./NewConversationModal";
+import { NewConversationStart } from "./NewConversationStart";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -20,7 +20,7 @@ type ConversationData = FunctionReturnType<typeof api.conversations.getConversat
 
 export function ChatInterface() {
   const [selectedConversationId, setSelectedConversationId] = useState<Id<"conversations"> | undefined>();
-  const [showNewConversationModal, setShowNewConversationModal] = useState(false);
+  const [showNewConversationMode, setShowNewConversationMode] = useState(false);
   const [showEndConversationModal, setShowEndConversationModal] = useState(false);
   const [conversationToEnd, setConversationToEnd] = useState<Id<"conversations"> | undefined>();
   
@@ -34,15 +34,17 @@ export function ChatInterface() {
 
   const handleConversationSelect = (conversationId: Id<"conversations">) => {
     setSelectedConversationId(conversationId);
+    setShowNewConversationMode(false);
   };
 
   const handleNewConversation = () => {
-    setShowNewConversationModal(true);
+    setSelectedConversationId(undefined);
+    setShowNewConversationMode(true);
   };
 
   const handleConversationCreated = (conversationId: Id<"conversations">) => {
     setSelectedConversationId(conversationId);
-    setShowNewConversationModal(false);
+    setShowNewConversationMode(false);
   };
 
   const handleEndConversation = (conversationId: Id<"conversations">) => {
@@ -68,7 +70,7 @@ export function ChatInterface() {
   return (
     <div className="h-screen flex bg-neutral-50 dark:bg-neutral-950">
       {/* Fixed Sidebar - Never moves */}
-      <div className={`${selectedConversationId ? 'hidden md:block' : 'block'} w-80 flex-shrink-0`}>
+      <div className={`${selectedConversationId || showNewConversationMode ? 'hidden md:block' : 'block'} w-80 flex-shrink-0`}>
         <ErrorBoundary>
           <Sidebar
             selectedConversationId={selectedConversationId}
@@ -79,7 +81,7 @@ export function ChatInterface() {
       </div>
 
       {/* Main Content Area */}
-      <div className={`${selectedConversationId ? 'flex-1' : 'hidden md:flex md:flex-1'} flex flex-col`}>
+      <div className={`${selectedConversationId || showNewConversationMode ? 'flex-1' : 'hidden md:flex md:flex-1'} flex flex-col`}>
         {/* Fixed Header - Never moves */}
         <header className="flex items-center justify-between px-4 py-2 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex-shrink-0">
           <div className="flex items-center gap-2">
@@ -99,22 +101,19 @@ export function ChatInterface() {
         {/* Chat Content - Only this scrolls */}
         <div className="flex-1 overflow-hidden">
           <ErrorBoundary>
-            <MainContent
-              conversationId={selectedConversationId}
-              conversationData={conversationData}
-              onEndConversation={handleEndConversation}
-              onBackToSidebar={() => setSelectedConversationId(undefined)}
-            />
+            {showNewConversationMode ? (
+              <NewConversationStart onConversationCreated={handleConversationCreated} />
+            ) : (
+              <MainContent
+                conversationId={selectedConversationId}
+                conversationData={conversationData}
+                onEndConversation={handleEndConversation}
+                onBackToSidebar={() => setSelectedConversationId(undefined)}
+              />
+            )}
           </ErrorBoundary>
         </div>
       </div>
-
-      {/* New Conversation Modal */}
-      <NewConversationModal
-        open={showNewConversationModal}
-        onOpenChange={setShowNewConversationModal}
-        onConversationCreated={handleConversationCreated}
-      />
 
       {/* End Conversation Confirmation Modal */}
       <Dialog open={showEndConversationModal} onOpenChange={setShowEndConversationModal}>
