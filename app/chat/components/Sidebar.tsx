@@ -1,12 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { api } from "@/convex/_generated/api";
 import { useAuthQuery } from "@/hooks/useAuthenticatedQuery";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ConversationListLoading } from "@/components/LoadingStates";
-import { Plus, MessageSquare, Clock } from "lucide-react";
+import { Plus, MessageSquare, User, Settings, LogOut } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
 
 interface SidebarProps {
@@ -21,9 +23,17 @@ export function Sidebar({
   onNewConversation 
 }: SidebarProps) {
   const conversations = useAuthQuery(api.conversations.getUserConversations, {});
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   return (
-    <div className="w-full md:w-80 bg-neutral-100 dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex flex-col h-full">
+    <div className="w-full bg-neutral-100 dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex flex-col h-screen">
+      {/* App Name */}
+      <div className="p-4 border-b border-neutral-200 dark:border-neutral-800">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
+          Rethoric
+        </h1>
+      </div>
+      
       {/* Header */}
       <div className="p-4 border-b border-neutral-200 dark:border-neutral-800">
         <Button 
@@ -60,42 +70,9 @@ export function Sidebar({
             }`}
             onClick={() => onConversationSelect(conversation._id)}
           >
-            <div className="space-y-2">
-              <div className="flex items-start justify-between">
-                <h3 className="font-medium text-sm text-neutral-900 dark:text-neutral-100 line-clamp-2 flex-1">
-                  {conversation.question?.title || "Untitled Question"}
-                </h3>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ml-2 flex-shrink-0 ${
-                  conversation.status === 'active' 
-                    ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                    : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400'
-                }`}>
-                  {conversation.status === 'active' ? 'Active' : 'Completed'}
-                </span>
-              </div>
-              
-              <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
-                <Clock className="h-3 w-3" />
-                <span>
-                  {new Date(conversation.startedAt).toLocaleDateString()}
-                </span>
-              </div>
-              
-              {conversation.question?.tags && conversation.question.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {conversation.question.tags.slice(0, 2).map((tag) => (
-                    <span key={tag} className="px-2 py-1 bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 rounded text-xs">
-                      {tag}
-                    </span>
-                  ))}
-                  {conversation.question.tags.length > 2 && (
-                    <span className="px-2 py-1 bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 rounded text-xs">
-                      +{conversation.question.tags.length - 2}
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
+            <h3 className="font-medium text-sm text-neutral-900 dark:text-neutral-100 line-clamp-2">
+              {conversation.question?.title || "Untitled Question"}
+            </h3>
           </Card>
             ))}
           </div>
@@ -104,16 +81,49 @@ export function Sidebar({
 
       <Separator />
       
-      {/* Footer */}
-      <div className="p-4 text-center">
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          {conversations && conversations.length > 0 && (
-            <>
-              {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
-            </>
-          )}
-        </p>
+      {/* Profile Section */}
+      <div className="p-4">
+        <Button
+          variant="ghost"
+          onClick={() => setShowProfileModal(true)}
+          className="w-full justify-start gap-2 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
+        >
+          <User className="h-4 w-4" />
+          <span>Profile</span>
+        </Button>
       </div>
+
+      {/* Profile Modal */}
+      <Dialog open={showProfileModal} onOpenChange={setShowProfileModal}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Profile
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-2">
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-2"
+              onClick={() => window.location.href = '/profile'}
+            >
+              <Settings className="h-4 w-4" />
+              Settings
+            </Button>
+            
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+              onClick={() => window.location.href = '/api/auth/signout'}
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

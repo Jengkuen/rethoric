@@ -5,12 +5,10 @@ import { useAuthQuery } from "@/hooks/useAuthenticatedQuery";
 import { api } from "@/convex/_generated/api";
 import { MessageBubble } from "./MessageBubble";
 import { MessageInput } from "./MessageInput";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ConversationLoading } from "@/components/LoadingStates";
-import { MessageSquare, CheckCircle, Clock, ArrowLeft } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { MessageSquare, CheckCircle } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
 
 interface MainContentProps {
@@ -30,7 +28,7 @@ interface OptimisticMessage {
   hasError?: boolean;
 }
 
-export function MainContent({ conversationId, onEndConversation, onBackToSidebar }: MainContentProps) {
+export function MainContent({ conversationId }: MainContentProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [optimisticMessages, setOptimisticMessages] = useState<OptimisticMessage[]>([]);
   const [isAIThinking, setIsAIThinking] = useState(false);
@@ -112,68 +110,10 @@ export function MainContent({ conversationId, onEndConversation, onBackToSidebar
   ].sort((a, b) => a.timestamp - b.timestamp);
 
   return (
-    <div className="flex-1 flex flex-col bg-neutral-50 dark:bg-neutral-950">
-      {/* Header */}
-      <div className="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 flex-1">
-            {/* Mobile back button */}
-            {onBackToSidebar && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onBackToSidebar}
-                className="md:hidden"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span className="sr-only">Back to conversations</span>
-              </Button>
-            )}
-            
-            <div className="flex-1">
-              <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-1">
-                {conversation.question?.title || "Question"}
-              </h1>
-              <div className="flex items-center gap-4 text-sm text-neutral-600 dark:text-neutral-400">
-              <div className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                <span>
-                  Started {new Date(conversation.startedAt).toLocaleDateString()}
-                </span>
-              </div>
-              <div className={cn(
-                "flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium",
-                isCompleted
-                  ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                  : "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-              )}>
-                {isCompleted ? (
-                  <CheckCircle className="h-3 w-3" />
-                ) : (
-                  <MessageSquare className="h-3 w-3" />
-                )}
-                <span>{isCompleted ? "Completed" : "Active"}</span>
-              </div>
-              </div>
-            </div>
-          </div>
-          
-          {!isCompleted && onEndConversation && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onEndConversation(conversationId)}
-              className="text-green-600 hover:text-green-700 border-green-200 hover:border-green-300"
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              End Conversation
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-1 scroll-smooth">
+    <div className="h-full flex flex-col bg-neutral-50 dark:bg-neutral-950 relative">
+      {/* Messages Area - Only scrollable part */}
+      <div className="flex-1 overflow-y-auto pb-24 space-y-1 scroll-smooth">
+        <div className="max-w-3xl mx-auto p-4">
         {allMessages.length === 0 && (
           <div className="text-center py-8">
             <MessageSquare className="h-8 w-8 mx-auto mb-2 text-neutral-400 dark:text-neutral-600" />
@@ -188,7 +128,6 @@ export function MainContent({ conversationId, onEndConversation, onBackToSidebar
             key={message.isOptimistic ? message.id : message._id}
             role={message.role}
             content={message.content}
-            timestamp={message.timestamp}
             isOptimistic={message.isOptimistic}
             isPending={message.isOptimistic ? message.isPending : false}
             hasError={message.isOptimistic ? message.hasError : false}
@@ -234,23 +173,26 @@ export function MainContent({ conversationId, onEndConversation, onBackToSidebar
         )}
 
         <div ref={messagesEndRef} />
+        </div>
       </div>
 
-      {/* Message Input */}
+      {/* Fixed Input at bottom of chat area only */}
       {!isCompleted && (
-        <MessageInput
-          conversationId={conversationId}
-          onMessageSent={() => {
-            // Scroll to bottom after sending
-            setTimeout(() => {
-              messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-            }, 100);
-          }}
-          addOptimisticMessage={addOptimisticMessage}
-          removeOptimisticMessage={removeOptimisticMessage}
-          markOptimisticMessageAsError={markOptimisticMessageAsError}
-          onAIThinkingChange={setIsAIThinking}
-        />
+        <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800">
+          <MessageInput
+            conversationId={conversationId}
+            onMessageSent={() => {
+              // Scroll to bottom after sending
+              setTimeout(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+              }, 100);
+            }}
+            addOptimisticMessage={addOptimisticMessage}
+            removeOptimisticMessage={removeOptimisticMessage}
+            markOptimisticMessageAsError={markOptimisticMessageAsError}
+            onAIThinkingChange={setIsAIThinking}
+          />
+        </div>
       )}
     </div>
   );

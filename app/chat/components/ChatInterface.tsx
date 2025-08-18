@@ -55,35 +55,32 @@ export function ChatInterface() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-neutral-50 dark:bg-neutral-950">
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 py-2 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-            Rethoric
-          </h1>
-          <span className="text-sm text-neutral-500 dark:text-neutral-400">
-            Critical Thinking Coach
-          </span>
-        </div>
-        <ThemeToggle />
-      </header>
+    <div className="h-screen flex bg-neutral-50 dark:bg-neutral-950">
+      {/* Fixed Sidebar - Never moves */}
+      <div className={`${selectedConversationId ? 'hidden md:block' : 'block'} w-80 flex-shrink-0`}>
+        <ErrorBoundary>
+          <Sidebar
+            selectedConversationId={selectedConversationId}
+            onConversationSelect={handleConversationSelect}
+            onNewConversation={handleNewConversation}
+          />
+        </ErrorBoundary>
+      </div>
 
       {/* Main Content Area */}
-      <div className="flex flex-1 min-h-0">
-        {/* Sidebar - Hidden on mobile when conversation is selected */}
-        <div className={`${selectedConversationId ? 'hidden md:block' : 'block'} flex-shrink-0`}>
-          <ErrorBoundary>
-            <Sidebar
-              selectedConversationId={selectedConversationId}
-              onConversationSelect={handleConversationSelect}
-              onNewConversation={handleNewConversation}
-            />
-          </ErrorBoundary>
-        </div>
+      <div className={`${selectedConversationId ? 'flex-1' : 'hidden md:flex md:flex-1'} flex flex-col`}>
+        {/* Fixed Header - Never moves */}
+        <header className="flex items-center justify-between px-4 py-2 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-neutral-500 dark:text-neutral-400">
+              Critical Thinking Coach
+            </span>
+          </div>
+          <ThemeToggle />
+        </header>
 
-        {/* Main Content - Full width on mobile, flexible on desktop */}
-        <div className={`${selectedConversationId ? 'flex-1' : 'hidden md:flex md:flex-1'} min-w-0`}>
+        {/* Chat Content - Only this scrolls */}
+        <div className="flex-1 overflow-hidden">
           <ErrorBoundary>
             <MainContent
               conversationId={selectedConversationId}

@@ -121,7 +121,7 @@ export function MessageInput({
   const canSend = message.trim().length > 0 && !isSending && !disabled;
 
   return (
-    <div className="border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+    <div className="bg-white dark:bg-neutral-900">
       {/* Error Message */}
       {error && (
         <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border-b border-red-200 dark:border-red-800">
