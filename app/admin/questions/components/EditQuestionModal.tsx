@@ -6,7 +6,6 @@ import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Id } from "@/convex/_generated/dataModel";
@@ -14,8 +13,6 @@ import { Id } from "@/convex/_generated/dataModel";
 interface Question {
   _id: Id<"questions">;
   title: string;
-  description: string;
-  tags: string[];
   isDaily: boolean;
   dailyDate?: string;
 }
@@ -28,8 +25,6 @@ interface EditQuestionModalProps {
 
 export function EditQuestionModal({ open, onClose, question }: EditQuestionModalProps) {
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [tags, setTags] = useState("");
   const [isDaily, setIsDaily] = useState(false);
   const [dailyDate, setDailyDate] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,8 +34,6 @@ export function EditQuestionModal({ open, onClose, question }: EditQuestionModal
   useEffect(() => {
     if (question) {
       setTitle(question.title);
-      setDescription(question.description);
-      setTags(question.tags.join(", "));
       setIsDaily(question.isDaily);
       setDailyDate(question.dailyDate || "");
     }
@@ -56,8 +49,6 @@ export function EditQuestionModal({ open, onClose, question }: EditQuestionModal
       await updateQuestion({
         questionId: question._id,
         title,
-        description,
-        tags: tags.split(",").map(tag => tag.trim()).filter(Boolean),
         isDaily,
         dailyDate: isDaily && dailyDate ? dailyDate : undefined,
       });
@@ -90,26 +81,6 @@ export function EditQuestionModal({ open, onClose, question }: EditQuestionModal
             />
           </div>
 
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={4}
-              required
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="tags">Tags (comma-separated)</Label>
-            <Input
-              id="tags"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="technology, ethics, privacy"
-            />
-          </div>
 
           <div className="flex items-center space-x-2">
             <Checkbox

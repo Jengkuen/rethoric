@@ -42,7 +42,6 @@ const agentTools = {
       context: z
         .object({
           questionTitle: z.string().optional(),
-          tags: z.array(z.string()).optional(),
         })
         .optional(),
     }),
@@ -509,8 +508,6 @@ export const buildConversationContext = action({
       const context: {
         question: {
           title?: string;
-          description?: string;
-          tags?: string[];
         };
         messages: Array<{
           role: string;
@@ -525,8 +522,6 @@ export const buildConversationContext = action({
       } = {
         question: {
           title: conversation.conversation.question?.title,
-          description: conversation.conversation.question?.description,
-          tags: conversation.conversation.question?.tags,
         },
         messages: conversation.messages.map((msg: any) => ({
           role: msg.role,
@@ -560,13 +555,9 @@ export const buildConversationContext = action({
 
 function buildDynamicSystemPrompt(context: any | undefined): string {
   const title = context?.question?.title;
-  const description = context?.question?.description;
-  const tags = context?.question?.tags as string[] | undefined;
   const stage = getConversationStage(context?.messages?.length ?? 0);
   const topicLine = title ? `Topic: ${title}` : undefined;
-  const descLine = description ? `Context: ${description}` : undefined;
-  const tagsLine = tags && tags.length > 0 ? `Tags: ${tags.join(", ")}` : undefined;
   const stageLine = `Stage: ${stage}`;
-  const extras = [topicLine, descLine, tagsLine, stageLine].filter(Boolean).join("\n");
+  const extras = [topicLine, stageLine].filter(Boolean).join("\n");
   return `${SOCraticMentorInstructions}\n\n${extras}`.trim();
 }

@@ -13,11 +13,9 @@ export default defineSchema({
     .index("by_clerk_id", ["clerkId"])
     .index("by_role", ["role"]),
 
-  // Questions table with categorization and tagging
+  // Questions table
   questions: defineTable({
     title: v.string(),
-    description: v.string(),
-    tags: v.array(v.string()),
     isDaily: v.boolean(),
     dailyDate: v.optional(v.string()), // ISO date string for daily questions
     createdAt: v.number(),

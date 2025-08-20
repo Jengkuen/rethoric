@@ -6,7 +6,6 @@ import { useAuthQuery } from "@/hooks/useAuthenticatedQuery";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, MessageSquare, Star, Calendar, Sparkles } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -130,15 +129,6 @@ export function NewConversationStart({ onConversationCreated }: NewConversationS
                       </h3>
                     </div>
 
-                    {nextQuestionData.question.tags && nextQuestionData.question.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {nextQuestionData.question.tags.map((tag) => (
-                          <Badge key={tag} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
 
                     {nextQuestionData.type === "daily" && (
                       <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-3">

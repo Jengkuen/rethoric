@@ -28,7 +28,7 @@ export const startNewConversation = authMutation({
     await ctx.db.insert("messages", {
       conversationId,
       role: "assistant",
-      content: `**${question.title}**\n\n${question.description}`,
+      content: `**${question.title}**\n\nLet's explore this question together. What are your initial thoughts?`,
       timestamp: Date.now(),
     });
 
@@ -238,8 +238,6 @@ export const startConversationWithCustomQuestion = authMutation({
     // Create the custom question first
     const questionId = await ctx.db.insert("questions", {
       title: customQuestionText.trim(),
-      description: customQuestionText.trim(),
-      tags: ["custom"],
       isDaily: false,
       createdAt: Date.now(),
     });

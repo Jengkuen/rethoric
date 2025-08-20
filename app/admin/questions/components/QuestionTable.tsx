@@ -11,8 +11,6 @@ import { Id } from "@/convex/_generated/dataModel";
 interface Question {
   _id: Id<"questions">;
   title: string;
-  description: string;
-  tags: string[];
   isDaily: boolean;
   dailyDate?: string;
   createdAt: number;
@@ -47,8 +45,6 @@ export function QuestionTable({ questions }: QuestionTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Title</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Tags</TableHead>
               <TableHead>Daily</TableHead>
               <TableHead>Created</TableHead>
               <TableHead>Actions</TableHead>
@@ -59,18 +55,6 @@ export function QuestionTable({ questions }: QuestionTableProps) {
               <TableRow key={question._id}>
                 <TableCell className="font-medium">
                   {question.title}
-                </TableCell>
-                <TableCell className="max-w-md truncate">
-                  {question.description}
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {question.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
                 </TableCell>
                 <TableCell>
                   {question.isDaily ? (
@@ -106,7 +90,7 @@ export function QuestionTable({ questions }: QuestionTableProps) {
             ))}
             {questions.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                   No questions found. Create your first question to get started.
                 </TableCell>
               </TableRow>

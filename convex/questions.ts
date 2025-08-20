@@ -80,8 +80,6 @@ export const getNextQuestionForUser = authQuery({
 export const createQuestion = authMutation({
   args: {
     title: v.string(),
-    description: v.string(),
-    tags: v.array(v.string()),
     isDaily: v.boolean(),
     dailyDate: v.optional(v.string()),
   },
@@ -106,8 +104,6 @@ export const updateQuestion = authMutation({
   args: {
     questionId: v.id("questions"),
     title: v.optional(v.string()),
-    description: v.optional(v.string()),
-    tags: v.optional(v.array(v.string())),
     isDaily: v.optional(v.boolean()),
     dailyDate: v.optional(v.string()),
   },
